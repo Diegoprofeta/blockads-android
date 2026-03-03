@@ -584,7 +584,6 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-
             // Applications: App whitelist, per-app settings
             SectionHeader(
                 title = stringResource(R.string.settings_category_apps),
@@ -627,12 +626,56 @@ fun SettingsScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
+            // App Management
+            Card(
+                onClick = { navigator.navigate(AppManagementScreenDestination) },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Apps, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.app_management_title),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            stringResource(R.string.app_management_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary
+                        )
+                    }
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForwardIos,
+                        contentDescription = null,
+                        tint = TextSecondary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Filters: Filter management, auto-update, custom rules
+            SectionHeader(
+                title = stringResource(R.string.settings_category_filters),
+                icon = Icons.Default.FilterList,
+                description = stringResource(R.string.settings_category_filters_desc)
+            )
             // Firewall (Per-App Internet Control)
             Card(
-                onClick = { navigator.navigate(FirewallScreenDestination) },
+                onClick = { navigator.navigate(FilterSetupScreenDestination) },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp)
             ) {
@@ -666,108 +709,91 @@ fun SettingsScreen(
                         modifier = Modifier.size(16.dp)
                     )
                 }
-
-
                 Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                )
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Block, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.settings_whitelist_domains),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                stringResource(R.string.settings_whitelist_domains_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                        }
+                    }
 
-                // Whitelist Domains
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.animateContentSize()
-                ) {
-                    Column {
+                    if (whitelistDomains.isNotEmpty()) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                        )
+                    }
+
+                    whitelistDomains.forEach { domain ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                Icons.Default.Block, contentDescription = null,
-                                tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(20.dp)
+                            Text(
+                                text = domain.domain,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    stringResource(R.string.settings_whitelist_domains),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                                Text(
-                                    stringResource(R.string.settings_whitelist_domains_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = TextSecondary
-                                )
-                            }
-                        }
-
-                        if (whitelistDomains.isNotEmpty()) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
-                            )
-                        }
-
-                        whitelistDomains.forEach { domain ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            IconButton(
+                                onClick = { viewModel.removeWhitelistDomain(domain) },
+                                modifier = Modifier.size(32.dp)
                             ) {
-                                Text(
-                                    text = domain.domain,
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onBackground
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Remove",
+                                    tint = TextSecondary.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(16.dp)
                                 )
-                                IconButton(
-                                    onClick = { viewModel.removeWhitelistDomain(domain) },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Remove",
-                                        tint = TextSecondary.copy(alpha = 0.5f),
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
                             }
-                        }
-
-                        TextButton(
-                            onClick = { showAddDomainDialog = true },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.settings_add_domain))
                         }
                     }
+
+                    TextButton(
+                        onClick = { showAddDomainDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.settings_add_domain))
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Filters: Filter management, auto-update, custom rules
-            SectionHeader(
-                title = stringResource(R.string.settings_category_filters),
-                icon = Icons.Default.FilterList,
-                description = stringResource(R.string.settings_category_filters_desc)
-            )
-            Card(
-                onClick = { navigator.navigate(FilterSetupScreenDestination) },
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp)
-            ) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -937,47 +963,6 @@ fun SettingsScreen(
             }
 
             // Data: Export/Import, clear logs
-
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // App Management
-            Card(
-                onClick = { navigator.navigate(AppManagementScreenDestination) },
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Default.Apps, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.app_management_title),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Text(
-                            stringResource(R.string.app_management_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
-                        )
-                    }
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = null,
-                        tint = TextSecondary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
