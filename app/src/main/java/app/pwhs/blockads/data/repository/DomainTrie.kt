@@ -26,11 +26,11 @@ class DomainTrie {
 
     private class TrieNode {
         var isTerminal: Boolean = false
-        var children: HashMap<String, TrieNode>? = null
+        var children: LinkedHashMap<String, TrieNode>? = null
         @JvmField var bfsOffset: Int = 0 // transient, used only during serialization
 
         fun getOrCreateChild(label: String): TrieNode {
-            val map = children ?: HashMap<String, TrieNode>(4).also { children = it }
+            val map = children ?: LinkedHashMap<String, TrieNode>(4).also { children = it }
             return map.getOrPut(label) { TrieNode() }
         }
 
@@ -253,9 +253,9 @@ class DomainTrie {
 
             offset += 3 // isTerminal(1) + childCount(2)
             
-            // CRITICAL: Sort children to ensure deterministic mapping between Passes
-            val sortedChildren = node.children?.entries?.sortedBy { it.key }
-            sortedChildren?.forEach { (label, child) ->
+            // To ensure deterministic mapping, we need consistent iteration order
+            // Now that children is a LinkedHashMap, the order format is already consistent and sorting is slow
+            node.children?.forEach { (label, child) ->
                 offset += 2 + label.toByteArray(Charsets.UTF_8).size + 4
                 queue.add(child)
             }
@@ -274,11 +274,10 @@ class DomainTrie {
                 val node = queue.removeFirst()
                 out.writeByte(if (node.isTerminal) 1 else 0)
                 
-                val sortedChildren = node.children?.entries?.sortedBy { it.key }
-                val childCount = sortedChildren?.size ?: 0
+                val childCount = node.children?.size ?: 0
                 out.writeShort(childCount)
 
-                sortedChildren?.forEach { (label, child) ->
+                node.children?.forEach { (label, child) ->
                     val labelBytes = label.toByteArray(Charsets.UTF_8)
                     out.writeShort(labelBytes.size)
                     out.write(labelBytes)
