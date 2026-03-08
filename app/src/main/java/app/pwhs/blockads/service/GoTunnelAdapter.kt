@@ -90,26 +90,19 @@ class GoTunnelAdapter(
      * then checks [FirewallManager.shouldBlock].
      */
     private fun setupFirewallChecker() {
-        engine.setFirewallChecker(object : FirewallChecker {
-            override fun shouldBlock(
-                sourcePort: Long,
-                sourceIP: ByteArray,
-                destIP: ByteArray,
-                destPort: Long,
-            ): String {
-                val fwManager = firewallManagerProvider() ?: return ""
-                try {
-                    val identity = appNameResolver.resolveIdentity(
-                        sourcePort.toInt(), sourceIP, destIP, destPort.toInt()
-                    )
-                    if (identity.packageName.isEmpty()) return ""
-                    return if (fwManager.shouldBlock(identity.packageName)) {
-                        identity.appName.ifEmpty { identity.packageName }
-                    } else ""
-                } catch (e: Exception) {
-                    Timber.e(e, "Firewall check failed")
-                    return ""
-                }
+        engine.setFirewallChecker(FirewallChecker { sourcePort, sourceIP, destIP, destPort ->
+            val fwManager = firewallManagerProvider() ?: return@FirewallChecker ""
+            try {
+                val identity = appNameResolver.resolveIdentity(
+                    sourcePort.toInt(), sourceIP, destIP, destPort.toInt()
+                )
+                if (identity.packageName.isEmpty()) return@FirewallChecker ""
+                return@FirewallChecker if (fwManager.shouldBlock(identity.packageName)) {
+                    identity.appName.ifEmpty { identity.packageName }
+                } else ""
+            } catch (e: Exception) {
+                Timber.e(e, "Firewall check failed")
+                return@FirewallChecker ""
             }
         })
     }
@@ -118,35 +111,25 @@ class GoTunnelAdapter(
      * Set the DNS log callback.
      */
     private fun setupLogCallback() {
-        engine.setLogCallback(object : LogCallback {
-            override fun onDNSQuery(
-                domain: String,
-                blocked: Boolean,
-                queryType: Long,
-                responseTimeMs: Long,
-                appName: String,
-                resolvedIP: String,
-                blockedBy: String,
-            ) {
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        val entry = DnsLogEntry(
-                            domain = domain,
-                            isBlocked = blocked,
-                            queryType = dnsQueryTypeToString(queryType.toInt()),
-                            responseTimeMs = responseTimeMs,
-                            appName = appName,
-                            resolvedIp = resolvedIP,
-                            blockedBy = blockedBy,
-                            timestamp = System.currentTimeMillis(),
-                        )
-                        dnsLogDao.insert(entry)
-                    } catch (e: Exception) {
-                        Timber.e(e, "Error logging DNS query for $domain")
-                    }
+        engine.setLogCallback { domain, blocked, queryType, responseTimeMs, appName, resolvedIP, blockedBy ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val entry = DnsLogEntry(
+                        domain = domain,
+                        isBlocked = blocked,
+                        queryType = dnsQueryTypeToString(queryType.toInt()),
+                        responseTimeMs = responseTimeMs,
+                        appName = appName,
+                        resolvedIp = resolvedIP,
+                        blockedBy = blockedBy,
+                        timestamp = System.currentTimeMillis(),
+                    )
+                    dnsLogDao.insert(entry)
+                } catch (e: Exception) {
+                    Timber.e(e, "Error logging DNS query for $domain")
                 }
             }
-        })
+        }
     }
 
     /**
