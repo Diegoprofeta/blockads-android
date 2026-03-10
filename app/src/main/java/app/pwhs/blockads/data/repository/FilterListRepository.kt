@@ -258,6 +258,16 @@ class FilterListRepository(
         return if (file.exists()) file.absolutePath else null
     }
 
+    fun getAdBloomPath(): String? {
+        val file = File(trieDir, "ad_domains.bloom")
+        return if (file.exists()) file.absolutePath else null
+    }
+
+    fun getSecurityBloomPath(): String? {
+        val file = File(trieDir, "security_domains.bloom")
+        return if (file.exists()) file.absolutePath else null
+    }
+
     /**
      * Check if a domain or any of its parent domains matches a condition.
      *
@@ -532,6 +542,9 @@ class FilterListRepository(
                         val tempFile = File(adTrieFile.parent, adTrieFile.name + ".tmp")
                         adTrieBuilder.saveToBinary(tempFile)
                         tempFile.renameTo(adTrieFile)
+                        // Generate bloom filter for fast pre-filtering in Go
+                        val adBloomFile = File(trieDir, "ad_domains.bloom")
+                        adTrieBuilder.saveBloomFilter(adBloomFile)
                     }
                     adTrieBuilder.clear()
                 } else {
@@ -563,6 +576,9 @@ class FilterListRepository(
                         val tempFile = File(secTrieFile.parent, secTrieFile.name + ".tmp")
                         secTrieBuilder.saveToBinary(tempFile)
                         tempFile.renameTo(secTrieFile)
+                        // Generate bloom filter for fast pre-filtering in Go
+                        val secBloomFile = File(trieDir, "security_domains.bloom")
+                        secTrieBuilder.saveBloomFilter(secBloomFile)
                     }
                     secTrieBuilder.clear()
                 } else {
@@ -626,11 +642,14 @@ class FilterListRepository(
             }
         }
 
-        // Re-serialize
+        // Re-serialize trie + regenerate bloom filter
         if (trieBuilder.size > 0) {
             val tempFile = File(trieFile.parent, trieFile.name + ".tmp")
             trieBuilder.saveToBinary(tempFile)
             tempFile.renameTo(trieFile)
+            // Regenerate bloom filter for the updated trie
+            val bloomFile = File(trieFile.parent, trieFile.nameWithoutExtension + ".bloom")
+            trieBuilder.saveBloomFilter(bloomFile)
         }
         val totalCount = trieBuilder.size
         trieBuilder.clear()

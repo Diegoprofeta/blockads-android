@@ -290,6 +290,123 @@ class DomainTrie {
             }
         }
     }
+
+    /**
+     * Generate a Bloom Filter file from all terminal domains in this Trie.
+     * Uses the same FNV double-hashing as the Go engine for compatibility.
+     *
+     * The bloom filter acts as a pre-filter on the Go side: if a domain is
+     * "definitely NOT in the filter", the Go engine skips the MmapTrie lookup
+     * entirely — eliminating tree traversal for ~90%+ of clean DNS queries.
+     */
+    fun saveBloomFilter(file: File) {
+        if (_size == 0) return
+
+        // Collect all terminal domains via BFS
+        val domains = mutableListOf<String>()
+        data class TraversalItem(val node: TrieNode, val labels: List<String>)
+        val stack = ArrayDeque<TraversalItem>()
+        stack.add(TraversalItem(root, emptyList()))
+
+        while (stack.isNotEmpty()) {
+            val item = stack.removeFirst()
+            if (item.node.isTerminal && item.labels.isNotEmpty()) {
+                domains.add(item.labels.reversed().joinToString("."))
+            }
+            item.node.children?.forEach { (label, child) ->
+                stack.add(TraversalItem(child, item.labels + label))
+            }
+        }
+
+        // Build bloom filter
+        val bloom = BloomFilterBuilder(domains.size, 0.001) // 0.1% FPR
+        for (domain in domains) {
+            bloom.add(domain)
+        }
+        bloom.saveToFile(file)
+    }
+}
+
+/**
+ * Kotlin-side Bloom Filter builder that produces binary files
+ * readable by the Go engine's `LoadBloomFilter()`.
+ *
+ * Uses the same FNV-1a / FNV-1 double hashing as Go to ensure
+ * bit-for-bit compatibility.
+ */
+class BloomFilterBuilder(expectedItems: Int, fpRate: Double = 0.001) {
+
+    private val bitCount: Long
+    private val hashCount: Int
+    private val bits: ByteArray
+
+    init {
+        val n = expectedItems.coerceAtLeast(1).toDouble()
+        val p = fpRate.coerceIn(Double.MIN_VALUE, 0.999)
+        val m = (-n * kotlin.math.ln(p) / (kotlin.math.ln(2.0) * kotlin.math.ln(2.0))).toLong()
+        val k = ((m.toDouble() / n) * kotlin.math.ln(2.0)).toInt().coerceAtLeast(1)
+
+        // Round up to byte boundary
+        bitCount = if (m % 8 != 0L) (m / 8 + 1) * 8 else m
+        hashCount = k
+        bits = ByteArray((bitCount / 8).toInt())
+    }
+
+    fun add(domain: String) {
+        val (h1, h2) = fnvDoubleHash(domain)
+        for (i in 0 until hashCount) {
+            val idx = ((h1 + i.toULong() * h2) % bitCount.toULong()).toLong()
+            val byteIdx = (idx / 8).toInt()
+            val bitIdx = (idx % 8).toInt()
+            bits[byteIdx] = (bits[byteIdx].toInt() or (1 shl bitIdx)).toByte()
+        }
+    }
+
+    fun saveToFile(file: File) {
+        file.parentFile?.mkdirs()
+        java.io.DataOutputStream(file.outputStream().buffered()).use { out ->
+            out.writeInt(0x424C4F4D) // BLOM magic
+            out.writeInt(1)          // version
+            out.writeLong(bitCount)
+            out.writeInt(hashCount)
+            out.writeInt(0)          // padding
+            out.write(bits)
+        }
+    }
+
+    companion object {
+        // FNV-1a 64-bit constants (must match Go's hash/fnv)
+        private const val FNV_OFFSET_BASIS: ULong = 14695981039346656037uL
+        private const val FNV_PRIME: ULong = 1099511628211uL
+
+        /**
+         * Double hash using FNV-1a (h1) and FNV-1 (h2), matching Go exactly.
+         */
+        fun fnvDoubleHash(s: String): Pair<ULong, ULong> {
+            val bytes = s.toByteArray(Charsets.UTF_8)
+
+            // h1: FNV-1a (XOR then multiply)
+            var h1 = FNV_OFFSET_BASIS
+            for (b in bytes) {
+                h1 = h1 xor b.toUByte().toULong()
+                h1 *= FNV_PRIME
+            }
+
+            // h2: FNV-1 (multiply then XOR)
+            var h2 = FNV_OFFSET_BASIS
+            for (b in bytes) {
+                h2 *= FNV_PRIME
+                h2 = h2 xor b.toUByte().toULong()
+            }
+
+            // Ensure h2 is odd (avoids cycles, same as Go)
+            if (h2 % 2uL == 0uL) {
+                h2++
+            }
+
+            return h1 to h2
+        }
+    }
 }
 
 /**

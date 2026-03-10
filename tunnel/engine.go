@@ -78,6 +78,10 @@ type Engine struct {
 	adTrie  *MmapTrie
 	secTrie *MmapTrie
 
+	// Bloom filters for fast pre-filtering (skip trie if definitely clean)
+	adBloom  *BloomFilter
+	secBloom *BloomFilter
+
 	mu      sync.Mutex
 	running bool
 	tunFile *os.File
@@ -107,13 +111,13 @@ func (e *Engine) SetDomainChecker(checker DomainChecker) {
 	e.domainChecker = checker
 }
 
-// SetTries loads the native memory-mapped domain tries for blazing-fast lookups in Go.
-// It accepts the absolute paths to the ad and security binary trie files.
-func (e *Engine) SetTries(adTriePath string, secTriePath string) {
+// SetTries loads the native memory-mapped domain tries and bloom filters for blazing-fast lookups in Go.
+// It accepts the absolute paths to the ad/security binary trie files and their corresponding bloom filter files.
+func (e *Engine) SetTries(adTriePath, secTriePath, adBloomPath, secBloomPath string) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	// Close old ones if they exist
+	// Close old tries
 	if e.adTrie != nil {
 		e.adTrie.Close()
 		e.adTrie = nil
@@ -123,23 +127,57 @@ func (e *Engine) SetTries(adTriePath string, secTriePath string) {
 		e.secTrie = nil
 	}
 
+	// Close old bloom filters
+	if e.adBloom != nil {
+		e.adBloom.Close()
+		e.adBloom = nil
+	}
+	if e.secBloom != nil {
+		e.secBloom.Close()
+		e.secBloom = nil
+	}
+
+	// Load ad trie
 	if adTriePath != "" {
 		t, err := LoadMmapTrie(adTriePath)
 		if err != nil {
 			logf("Failed to load Ad Trie: %v", err)
 		} else {
 			e.adTrie = t
-			logf("Loaded Ad Trie recursively from Go native Mmap")
+			logf("Loaded Ad Trie from Go native Mmap")
 		}
 	}
 
+	// Load security trie
 	if secTriePath != "" {
 		t, err := LoadMmapTrie(secTriePath)
 		if err != nil {
 			logf("Failed to load Security Trie: %v", err)
 		} else {
 			e.secTrie = t
-			logf("Loaded Security Trie recursively from Go native Mmap")
+			logf("Loaded Security Trie from Go native Mmap")
+		}
+	}
+
+	// Load ad bloom filter
+	if adBloomPath != "" {
+		bf, err := LoadBloomFilter(adBloomPath)
+		if err != nil {
+			logf("Failed to load Ad Bloom Filter: %v", err)
+		} else {
+			e.adBloom = bf
+			logf("Loaded Ad Bloom Filter for fast pre-filtering")
+		}
+	}
+
+	// Load security bloom filter
+	if secBloomPath != "" {
+		bf, err := LoadBloomFilter(secBloomPath)
+		if err != nil {
+			logf("Failed to load Security Bloom Filter: %v", err)
+		} else {
+			e.secBloom = bf
+			logf("Loaded Security Bloom Filter for fast pre-filtering")
 		}
 	}
 }
@@ -286,6 +324,14 @@ func (e *Engine) Stop() {
 		e.secTrie.Close()
 		e.secTrie = nil
 	}
+	if e.adBloom != nil {
+		e.adBloom.Close()
+		e.adBloom = nil
+	}
+	if e.secBloom != nil {
+		e.secBloom.Close()
+		e.secBloom = nil
+	}
 }
 
 // IsRunning returns whether the engine is currently running.
@@ -345,14 +391,32 @@ func (e *Engine) handleDNSQuery(queryInfo *DNSQueryInfo) {
 		}
 	}
 
-	// Fast Native Go Domain blocking check via Mmap Trie
-	if e.secTrie != nil && e.secTrie.ContainsOrParent(domain) {
-		e.handleBlockedDomain(queryInfo, "security", appName, startTime)
-		return
+	// Fast Native Go Domain blocking check — Bloom Filter pre-filter + Mmap Trie
+	//
+	// Step 1: Bloom Filter (O(1)) — if it says "definitely not blocked", skip the trie entirely.
+	// Step 2: Mmap Trie (O(L)) — confirm that the domain is actually blocked.
+	//
+	// This eliminates trie traversal for ~90%+ of clean queries.
+
+	// Security domains
+	if e.secTrie != nil {
+		// If bloom filter exists and says "definitely clean", skip trie
+		if e.secBloom == nil || e.secBloom.MightContainDomainOrParent(domain) {
+			if e.secTrie.ContainsOrParent(domain) {
+				e.handleBlockedDomain(queryInfo, "security", appName, startTime)
+				return
+			}
+		}
 	}
-	if e.adTrie != nil && e.adTrie.ContainsOrParent(domain) {
-		e.handleBlockedDomain(queryInfo, "filter_list", appName, startTime)
-		return
+
+	// Ad domains
+	if e.adTrie != nil {
+		if e.adBloom == nil || e.adBloom.MightContainDomainOrParent(domain) {
+			if e.adTrie.ContainsOrParent(domain) {
+				e.handleBlockedDomain(queryInfo, "filter_list", appName, startTime)
+				return
+			}
+		}
 	}
 
 	// Fallback/Custom Domain blocking check (via Kotlin callback)

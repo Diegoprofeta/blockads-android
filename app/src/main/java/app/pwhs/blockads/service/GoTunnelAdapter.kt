@@ -206,12 +206,14 @@ class GoTunnelAdapter(
     }
 
     /**
-     * Update the Go engine with the latest Trie file paths dynamically.
+     * Update the Go engine with the latest Trie and Bloom Filter file paths dynamically.
      */
     fun updateTries() {
         engine.setTries(
             filterRepo.getAdTriePath() ?: "",
-            filterRepo.getSecurityTriePath() ?: ""
+            filterRepo.getSecurityTriePath() ?: "",
+            filterRepo.getAdBloomPath() ?: "",
+            filterRepo.getSecurityBloomPath() ?: ""
         )
     }
 
