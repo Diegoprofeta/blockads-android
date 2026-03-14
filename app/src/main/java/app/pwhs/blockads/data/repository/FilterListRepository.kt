@@ -68,13 +68,6 @@ class FilterListRepository(
                 isBuiltIn = true
             ),
             FilterList(
-                name = "StevenBlack Fakenews",
-                url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts",
-                description = "Block fake news domains",
-                isEnabled = false,
-                isBuiltIn = true
-            ),
-            FilterList(
                 name = "StevenBlack Gambling",
                 url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/gambling-only/hosts",
                 description = "Block gambling & betting sites",
