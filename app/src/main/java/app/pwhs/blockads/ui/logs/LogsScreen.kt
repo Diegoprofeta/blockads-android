@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SyncAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -46,7 +44,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,7 +81,6 @@ fun LogsScreen(
     val timeRange by viewModel.timeRange.collectAsStateWithLifecycle()
     val appFilter by viewModel.appFilter.collectAsStateWithLifecycle()
     val appNames by viewModel.appNames.collectAsStateWithLifecycle()
-    val realTimeMode by viewModel.realTimeMode.collectAsStateWithLifecycle()
     val selectionMode by viewModel.selectionMode.collectAsStateWithLifecycle()
     val selectedIds by viewModel.selectedIds.collectAsStateWithLifecycle()
     val whitelistedDomains by viewModel.whitelistedDomains.collectAsStateWithLifecycle()
@@ -92,16 +88,8 @@ fun LogsScreen(
     var selectedEntry by remember { mutableStateOf<DnsLogEntry?>(null) }
     val context = LocalContext.current
     val resource = LocalResources.current
-    val listState = rememberLazyListState()
 
     UiEventEffect(viewModel.events)
-
-    // Real-time auto-scroll
-    LaunchedEffect(logs.size, realTimeMode) {
-        if (realTimeMode && logs.isNotEmpty()) {
-            listState.animateScrollToItem(0)
-        }
-    }
 
     Scaffold(
         modifier = modifier,
@@ -129,14 +117,6 @@ fun LogsScreen(
                     }
                 },
                 actions = {
-                    // Real-time toggle
-                    IconButton(onClick = { viewModel.toggleRealTimeMode() }) {
-                        Icon(
-                            Icons.Default.SyncAlt,
-                            contentDescription = "Real-time",
-                            tint = if (realTimeMode) MaterialTheme.colorScheme.primary else TextSecondary
-                        )
-                    }
                     IconButton(onClick = { isSearchVisible = !isSearchVisible }) {
                         Icon(
                             if (isSearchVisible) Icons.Default.Close else Icons.Default.Search,
@@ -349,7 +329,6 @@ fun LogsScreen(
                 }
             } else {
                 LazyColumn(
-                    state = listState,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),

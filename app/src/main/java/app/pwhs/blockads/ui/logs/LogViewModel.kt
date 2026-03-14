@@ -49,9 +49,6 @@ class LogViewModel(
     private val _appFilter = MutableStateFlow("")
     val appFilter: StateFlow<String> = _appFilter.asStateFlow()
 
-    private val _realTimeMode = MutableStateFlow(false)
-    val realTimeMode: StateFlow<Boolean> = _realTimeMode.asStateFlow()
-
     private val _selectionMode = MutableStateFlow(false)
     val selectionMode: StateFlow<Boolean> = _selectionMode.asStateFlow()
 
@@ -107,10 +104,6 @@ class LogViewModel(
 
     fun setAppFilter(app: String) {
         _appFilter.value = app
-    }
-
-    fun toggleRealTimeMode() {
-        _realTimeMode.value = !_realTimeMode.value
     }
 
     fun toggleSelection(id: Long) {
