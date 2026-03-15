@@ -104,7 +104,7 @@ class FilterListRepository(
             ),
             FilterList(
                 name = "Peter Lowe's Ad and tracking server list",
-                url = "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext",
+                url = "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&showintro=1&mimetype=plaintext",
                 description = "Lightweight host-based ad and tracking server blocklist",
                 isEnabled = false,
                 isBuiltIn = true
@@ -133,35 +133,42 @@ class FilterListRepository(
             // ── Hagezi DNS Blocklists ────────────────────────────────────
             FilterList(
                 name = "Hagezi Light",
-                url = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/light.txt",
+                url = "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/light.txt",
                 description = "Hagezi Light — basic ad & tracker blocking with minimal false positives",
                 isEnabled = false,
                 isBuiltIn = true
             ),
             FilterList(
                 name = "Hagezi Normal",
-                url = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/multi.txt",
+                url = "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/multi.txt",
                 description = "Hagezi Normal — all-round protection against ads, tracking & malware",
                 isEnabled = false,
                 isBuiltIn = true
             ),
             FilterList(
                 name = "Hagezi Pro",
-                url = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt",
+                url = "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.txt",
                 description = "Hagezi Pro — extended protection, recommended for advanced users",
                 isEnabled = false,
                 isBuiltIn = true
             ),
             FilterList(
                 name = "Hagezi Pro++",
-                url = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt",
+                url = "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.plus.txt",
                 description = "Hagezi Pro++ — aggressive blocking, may break some apps/sites",
                 isEnabled = false,
                 isBuiltIn = true
             ),
             FilterList(
+                name = "Hagezi Ultimate",
+                url = "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/ultimate.txt",
+                description = "Hagezi Ultimate — extremely aggressive blocking, will break most apps/sites",
+                isEnabled = false,
+                isBuiltIn = true
+            ),
+            FilterList(
                 name = "Hagezi TIF",
-                url = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/tif.txt",
+                url = "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/tif.txt",
                 description = "Hagezi Threat Intelligence — blocks malware, phishing, scam & cryptojacking",
                 isEnabled = false,
                 isBuiltIn = true,
@@ -393,16 +400,18 @@ class FilterListRepository(
      */
     suspend fun seedDefaultsIfNeeded() {
         val existingLists = filterListDao.getAllSync()
-        val existingMap = existingLists.associateBy { it.url }
+        val existingByUrl = existingLists.associateBy { it.url }
+        val existingByName = existingLists.associateBy { it.name }
 
         // Find which default lists need to be inserted or updated
         for (defaultList in DEFAULT_LISTS) {
-            val existing = existingMap[defaultList.url]
+            val existing = existingByUrl[defaultList.url] ?: existingByName[defaultList.name]
             if (existing == null) {
                 // Insert new built-in list
                 filterListDao.insert(defaultList)
                 Timber.d("Seeded new built-in filter: ${defaultList.name}")
-            } else if (existing.name != defaultList.name || 
+            } else if (existing.name != defaultList.name ||
+                existing.url != defaultList.url ||
                 existing.description != defaultList.description || 
                 existing.category != defaultList.category || 
                 !existing.isBuiltIn) {
@@ -411,6 +420,7 @@ class FilterListRepository(
                 filterListDao.update(
                     existing.copy(
                         name = defaultList.name,
+                        url = defaultList.url,
                         description = defaultList.description,
                         category = defaultList.category,
                         isBuiltIn = true
@@ -421,8 +431,8 @@ class FilterListRepository(
         }
 
         // Remove old built-in lists that are no longer in DEFAULT_LISTS
-        val defaultUrls = DEFAULT_LISTS.map { it.url }.toSet()
-        val obsoleteBuiltIn = existingLists.filter { it.isBuiltIn && it.url !in defaultUrls }
+        val defaultNames = DEFAULT_LISTS.map { it.name }.toSet()
+        val obsoleteBuiltIn = existingLists.filter { it.isBuiltIn && it.name !in defaultNames }
         for (obsolete in obsoleteBuiltIn) {
             filterListDao.delete(obsolete)
             Timber.d("Removed obsolete built-in filter: ${obsolete.name}")
