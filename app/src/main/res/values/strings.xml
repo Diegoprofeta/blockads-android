@@ -610,21 +610,24 @@
 
     <!-- HTTPS Filtering -->
     <string name="https_filtering_title">HTTPS Filtering</string>
-    <string name="https_filtering_toggle_label">HTTPS Popup Blocker</string>
-    <string name="https_filtering_status_active">Active — Filtering popups</string>
+    <string name="https_filtering_toggle_label">HTTPS Cosmetic Filter</string>
+    <string name="https_filtering_status_active">Active — Hiding ads</string>
     <string name="https_filtering_status_inactive">Inactive</string>
     <string name="https_filtering_explain_title">How does this work?</string>
-    <string name="https_filtering_explain_body">HTTPS Filtering intercepts web traffic from your selected browsers and injects a script to block annoying popups, pop-unders, and redirect ads.\n\nTo do this, a local Root CA certificate must be installed on your device. This certificate is generated locally and never leaves your phone. Banking apps, Google, and other sensitive services are never intercepted.</string>
+    <string name="https_filtering_explain_body">HTTPS Filtering intercepts web traffic from your selected browsers and applies cosmetic CSS rules to hide ad banners, overlays, and other visual ad elements on web pages.\n\nTo do this, a local Root CA certificate must be installed on your device. This certificate is generated locally and never leaves your phone. Banking apps, Google, and other sensitive services are never intercepted.</string>
     <string name="https_filtering_ca_title">Setup Guide</string>
-    <string name="https_filtering_ca_desc">Follow these steps to set up HTTPS popup blocking:</string>
-    <string name="https_filtering_step1_title">Step 1: Save Certificate</string>
-    <string name="https_filtering_step1_desc">Download the Root CA certificate to your device</string>
+    <string name="https_filtering_ca_desc">Follow these steps to set up HTTPS cosmetic filtering:</string>
     <string name="https_filtering_export_ca">Save to Downloads</string>
     <string name="https_filtering_cert_saved">Certificate saved to Downloads!</string>
-    <string name="https_filtering_step2_title">Step 2: Install Certificate</string>
-    <string name="https_filtering_step2_desc">Install the certificate on your device:</string>
     <string name="https_filtering_install_steps">1. Go to Settings → Security → Encryption &amp; credentials\n2. Tap \"Install a certificate\" → \"CA certificate\"\n3. Select \"BlockAds-RootCA.crt\" from Downloads\n4. Confirm the installation</string>
     <string name="https_filtering_open_settings">Open Security Settings</string>
+    <string name="https_filtering_browser_section">Browser Selection</string>
+    <string name="https_filtering_browser_desc">Select browsers to apply cosmetic ad filtering. Only selected apps are filtered.</string>
+    <string name="https_filtering_settings_desc">Hide ads visually in browsers</string>
+    <string name="https_filtering_step1_title">Step 1: Save Certificate</string>
+    <string name="https_filtering_step1_desc">Download the Root CA certificate to your device</string>
+    <string name="https_filtering_step2_title">Step 2: Install Certificate</string>
+    <string name="https_filtering_step2_desc">Install the certificate on your device:</string>
     <string name="https_filtering_step3_title">Step 3: Verify Installation</string>
     <string name="https_filtering_step3_desc">Check if the certificate is installed correctly</string>
     <string name="https_filtering_verify_cert">Verify Certificate</string>
@@ -632,8 +635,4 @@
     <string name="https_filtering_cert_not_installed">Certificate not installed</string>
     <string name="https_filtering_cert_checking">Checking…</string>
     <string name="https_filtering_cert_vpn_required">Tap \"Verify Certificate\" to check</string>
-    <string name="https_filtering_browser_section">Browser Selection</string>
-    <string name="https_filtering_browser_desc">Select browsers to block popups in. Only selected apps are filtered.</string>
-    <string name="https_filtering_settings_desc">Block popups &amp; redirects in browsers</string>
-
 </resources>
