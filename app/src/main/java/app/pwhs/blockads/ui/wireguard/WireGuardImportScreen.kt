@@ -47,6 +47,7 @@ fun WireGuardImportScreen(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val isWgActive by viewModel.isWgActive.collectAsStateWithLifecycle()
+    val isConfigSaved by viewModel.isConfigSaved.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -64,7 +65,15 @@ fun WireGuardImportScreen(
                     snackbarHostState.showSnackbar("WireGuard config saved. Applying...")
                 }
                 is WireGuardUiEvent.ConfigCleared -> {
-                    snackbarHostState.showSnackbar("WireGuard config cleared. Resetting...")
+                    snackbarHostState.showSnackbar("WireGuard config cleared.")
+                }
+                is WireGuardUiEvent.WireGuardToggled -> {
+                    val msg = if (event.enabled) {
+                        "WireGuard enabled. Restarting VPN…"
+                    } else {
+                        "WireGuard disabled. Restarting VPN…"
+                    }
+                    snackbarHostState.showSnackbar(msg)
                 }
             }
         }
@@ -98,7 +107,7 @@ fun WireGuardImportScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            if (!isWgActive) {
+            if (config == null) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         filePickerLauncher.launch(arrayOf("*/*"))
@@ -141,7 +150,9 @@ fun WireGuardImportScreen(
                     ConfigContent(
                         config = config!!,
                         isWgActive = isWgActive,
+                        isSaved = isConfigSaved,
                         onSaveAndActivate = { viewModel.saveAndActivate() },
+                        onToggleWireGuard = { viewModel.toggleWireGuard() },
                         onClearWireGuard = { viewModel.clearWireGuard() },
                         modifier = Modifier.fillMaxSize()
                     )

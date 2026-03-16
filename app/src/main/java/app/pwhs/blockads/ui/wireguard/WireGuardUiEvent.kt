@@ -9,4 +9,7 @@ sealed class WireGuardUiEvent {
 
     /** Config cleared — UI should reflect that WireGuard is no longer active. */
     data object ConfigCleared : WireGuardUiEvent()
+
+    /** WireGuard toggled on/off without clearing config. */
+    data class WireGuardToggled(val enabled: Boolean) : WireGuardUiEvent()
 }

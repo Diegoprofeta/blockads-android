@@ -39,24 +39,27 @@ class WireGuardImportViewModel(
     private val _isWgActive = MutableStateFlow(false)
     val isWgActive: StateFlow<Boolean> = _isWgActive.asStateFlow()
 
+    /** Whether a config has been saved to DataStore (persisted). */
+    private val _isConfigSaved = MutableStateFlow(false)
+    val isConfigSaved: StateFlow<Boolean> = _isConfigSaved.asStateFlow()
+
     /** One-shot UI events. */
     private val _events = MutableSharedFlow<WireGuardUiEvent>()
     val events: SharedFlow<WireGuardUiEvent> = _events.asSharedFlow()
 
     init {
-        // Load current routing mode on init
+        // Load current routing mode and saved config on init
         viewModelScope.launch {
             val mode = appPrefs.getRoutingModeSnapshot()
             _isWgActive.value = mode == AppPreferences.ROUTING_MODE_WIREGUARD
 
-            // If WireGuard is active, try to load the saved config for display
-            if (_isWgActive.value) {
-                val json = appPrefs.getWgConfigJsonSnapshot()
-                if (json != null) {
-                    try {
-                        _config.value = WireGuardConfig.fromJson(json)
-                    } catch (_: Exception) { /* ignore parse errors */ }
-                }
+            // Always load saved config for display (even when WG is inactive)
+            val json = appPrefs.getWgConfigJsonSnapshot()
+            if (json != null) {
+                _isConfigSaved.value = true
+                try {
+                    _config.value = WireGuardConfig.fromJson(json)
+                } catch (_: Exception) { /* ignore parse errors */ }
             }
         }
     }
@@ -108,11 +111,37 @@ class WireGuardImportViewModel(
                 appPrefs.setWgConfigJson(json)
                 appPrefs.setRoutingMode(AppPreferences.ROUTING_MODE_WIREGUARD)
                 _isWgActive.value = true
+                _isConfigSaved.value = true
                 AdBlockVpnService.requestRestart(getApplication())
                 _events.emit(WireGuardUiEvent.ConfigSaved)
             } catch (e: Exception) {
                 _error.value = "Failed to save config: ${e.message}"
             }
+        }
+    }
+
+    /**
+     * Toggle WireGuard on/off without clearing the saved config.
+     * When turning off, routing mode goes to direct but config JSON is preserved.
+     */
+    fun toggleWireGuard() {
+        viewModelScope.launch {
+            val newActive = !_isWgActive.value
+            if (newActive) {
+                // Re-enable: config must exist in DataStore
+                val json = appPrefs.getWgConfigJsonSnapshot()
+                if (json == null) {
+                    _error.value = "No saved config to enable"
+                    return@launch
+                }
+                appPrefs.setRoutingMode(AppPreferences.ROUTING_MODE_WIREGUARD)
+            } else {
+                // Disable: keep config, switch routing to direct
+                appPrefs.setRoutingMode(AppPreferences.ROUTING_MODE_DIRECT)
+            }
+            _isWgActive.value = newActive
+            AdBlockVpnService.requestRestart(getApplication())
+            _events.emit(WireGuardUiEvent.WireGuardToggled(newActive))
         }
     }
 
@@ -124,6 +153,7 @@ class WireGuardImportViewModel(
             appPrefs.setRoutingMode(AppPreferences.ROUTING_MODE_DIRECT)
             appPrefs.setWgConfigJson(null)
             _isWgActive.value = false
+            _isConfigSaved.value = false
             _config.value = null
             AdBlockVpnService.requestRestart(getApplication())
             _events.emit(WireGuardUiEvent.ConfigCleared)
