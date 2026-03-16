@@ -117,7 +117,11 @@ class HttpsFilteringViewModel(
             }
             _browsers.value = updated
             persistSelectedBrowsers(updated)
-            syncUidsToGoEngine(updated)
+
+            // Restart VPN so the running engine picks up the new browser UIDs.
+            // (This ViewModel's engine is a separate instance from the VPN's engine,
+            // so we must restart for changes to take effect.)
+            AdBlockVpnService.requestRestart(getApplication())
         }
     }
 

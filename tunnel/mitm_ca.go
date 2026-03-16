@@ -122,7 +122,7 @@ func (cm *CertManager) getCertificateWithDedup(host string) (*tls.Certificate, e
 		
 		// The cert should now be in the main certCache.
 		if cached, ok := cm.certCache.Load(host); ok {
-			return cached.(*tls.Certificate), nil
+			return cached.(*cachedCert).cert, nil
 		}
 		// If it's not in the cache, the other goroutine failed.
 		// We could retry, but for simplicity we fall through and fail here.

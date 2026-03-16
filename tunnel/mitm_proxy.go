@@ -443,12 +443,19 @@ func (p *MitmProxy) relayHTTP(clientConn net.Conn, serverConn net.Conn, hostname
 			originalBody := resp.Body
 			resp.Body = io.NopCloser(NewInjectingReader(originalBody))
 
-			// Remove Content-Length since injection changes the size.
-			// This forces chunked transfer encoding.
+			// Injection changes the body size, so we must switch to
+			// chunked transfer encoding.
+			// IMPORTANT: Set TransferEncoding explicitly to avoid
+			// double-chunking (if the original response was already
+			// chunked, Go's http.ReadResponse auto-dechunks the body
+			// but may leave the header — clearing it and letting
+			// resp.Write() re-infer can cause visible artifacts).
 			resp.ContentLength = -1
 			resp.Header.Del("Content-Length")
 			resp.Header.Del("Content-Encoding")
 			resp.Header.Del("Transfer-Encoding")
+			resp.TransferEncoding = nil // Let Go re-derive cleanly
+			resp.Uncompressed = true   // Signal body is already decompressed
 		}
 
 		// Write response to client
@@ -509,6 +516,9 @@ func (p *MitmProxy) handleHTTP(clientConn net.Conn, req *http.Request) {
 		resp.ContentLength = -1
 		resp.Header.Del("Content-Length")
 		resp.Header.Del("Content-Encoding")
+		resp.Header.Del("Transfer-Encoding")
+		resp.TransferEncoding = nil
+		resp.Uncompressed = true
 	}
 
 	resp.Write(clientConn)
