@@ -427,7 +427,7 @@ func (e *Engine) GetStats() string {
 }
 
 // ── MITM Proxy API ───────────────────────────────────────────────────────────
-// gomobile-compatible methods for controlling the HTTPS MITM popup blocker.
+// gomobile-compatible methods for controlling the HTTPS MITM cosmetic filter.
 
 // StartMitmProxy starts the local HTTPS MITM proxy on the given address
 // (e.g., "127.0.0.1:8080"). certDir is the persistent directory for the

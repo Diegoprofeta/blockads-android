@@ -22,8 +22,7 @@ import (
 // injectionTags are the lightweight tags injected after <head>.
 // The browser fetches these via HTTPS through the MITM proxy, which
 // intercepts "local.pwhs.app" and serves assets from memory.
-const injectionTags = `<link rel="stylesheet" href="https://local.pwhs.app/cosmetic.css">` +
-	`<script src="https://local.pwhs.app/killer.js"></script>`
+const injectionTags = `<link rel="stylesheet" href="https://local.pwhs.app/cosmetic.css">`
 
 // headTagBytes is the pattern to search for (case-insensitive matching done manually).
 var headTagBytes = []byte("<head") // matches both <head> and <head ...attributes>

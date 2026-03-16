@@ -15,7 +15,7 @@ import (
 //   3. SNI Keywords   → If the domain contains sensitive keywords (bank, pay,
 //                       auth, etc.), pass through immediately.
 //
-// If all checks pass → Intercept (MITM + popup injection).
+// If all checks pass → Intercept (MITM + cosmetic CSS injection).
 // Default for non-browser UIDs → Direct pass-through.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -110,7 +110,7 @@ func (f *MitmFilter) IsUIDAllowed(uid int) bool {
 // IsInterceptionAllowed determines if a domain should be MITM'd.
 // This is the SECOND check (after UID). Only called for browser traffic.
 //
-// Returns true  → Intercept (decrypt TLS, inject popup blocker).
+// Returns true  → Intercept (decrypt TLS, inject cosmetic CSS).
 // Returns false → Forward directly (no decryption).
 func (f *MitmFilter) IsInterceptionAllowed(host string) bool {
 	host = strings.ToLower(strings.TrimSpace(host))

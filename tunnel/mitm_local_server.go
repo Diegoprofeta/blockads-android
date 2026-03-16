@@ -10,20 +10,19 @@ import (
 // ─────────────────────────────────────────────────────────────────────────────
 // Local Asset Server — fake domain "local.pwhs.app"
 //
-// Instead of injecting thousands of bytes of raw CSS/JS inline into every HTML
-// page (which bloats the response and delays rendering), we inject lightweight
-// <link> and <script> tags pointing to this fake domain:
+// Instead of injecting thousands of bytes of raw CSS inline into every HTML
+// page (which bloats the response and delays rendering), we inject a lightweight
+// <link> tag pointing to this fake domain:
 //
 //   <link rel="stylesheet" href="https://local.pwhs.app/cosmetic.css">
-//   <script src="https://local.pwhs.app/killer.js"></script>
 //
 // When the browser fetches these URLs through the MITM proxy, the proxy
 // recognises the hostname and serves the assets directly from memory — no
 // upstream dial, no network round-trip.
 //
 // Advantages over inline injection:
-//   • HTML payload stays small (~120 bytes injected vs 50-100KB inline)
-//   • Browser can cache the CSS/JS (304 Not Modified via ETag)
+//   • HTML payload stays small (~80 bytes injected vs 50-100KB inline)
+//   • Browser can cache the CSS (304 Not Modified via ETag)
 //   • Easier to update rules without re-parsing every page
 //   • Separates concerns: injection vs content serving
 // ─────────────────────────────────────────────────────────────────────────────
@@ -40,8 +39,6 @@ func ServeLocalAsset(req *http.Request) *http.Response {
 	switch {
 	case path == "/cosmetic.css":
 		return serveCSS(req)
-	case path == "/killer.js":
-		return serveJS(req)
 	case path == "/health":
 		return serveHealth(req)
 	default:
@@ -62,18 +59,13 @@ func serveCSS(req *http.Request) *http.Response {
 	return buildTextResponse(req, 200, "text/css; charset=utf-8", css)
 }
 
-// serveJS returns the popup-killer JavaScript from memory.
-func serveJS(req *http.Request) *http.Response {
-	return buildTextResponse(req, 200, "application/javascript; charset=utf-8", popupKillerJS)
-}
-
 // serveHealth returns a simple health check (useful for debugging).
 func serveHealth(req *http.Request) *http.Response {
 	cosmeticMu.RLock()
 	cssLen := len(cosmeticCSS)
 	cosmeticMu.RUnlock()
 
-	body := fmt.Sprintf(`{"status":"ok","css_bytes":%d,"js_bytes":%d}`, cssLen, len(popupKillerJS))
+	body := fmt.Sprintf(`{"status":"ok","css_bytes":%d}`, cssLen)
 	return buildTextResponse(req, 200, "application/json", body)
 }
 
@@ -112,40 +104,6 @@ func IsLocalAssetHost(host string) bool {
 	}
 	return h == LocalAssetHost
 }
-
-// popupKillerJS is the popup-killer script served from /killer.js.
-// Extracted from the old inline injection for reuse.
-const popupKillerJS = `(function(){
-    window.open=function(){ console.log('[BlockAds] Prevented window.open'); return null;};
-    window.alert=function(){};
-    window.confirm=function(){return false;};
-    window.prompt=function(){return null;};
-
-    var _ce=document.createElement.bind(document);
-    document.createElement=function(t){
-        var el = _ce(t);
-        if(t.toLowerCase() === 'a'){
-            el.addEventListener('click', function(e){
-                if(el.target === '_blank') { 
-                    e.preventDefault(); 
-                    console.log('[BlockAds] Prevented hidden link click');
-                }
-            });
-        }
-        return el;
-    };
-
-    document.addEventListener('click', function(e){
-        var el = e.target;
-        var style = window.getComputedStyle(el);
-        
-        if(el.tagName === 'DIV' && style.zIndex > 9000 && (style.position === 'absolute' || style.position === 'fixed')) {
-            e.stopPropagation(); 
-            e.preventDefault();  
-            el.remove();         
-        }
-    }, true);
-})();`
 
 // readCloserFromString wraps a string in an io.ReadCloser.
 func readCloserFromString(s string) readCloserStr {

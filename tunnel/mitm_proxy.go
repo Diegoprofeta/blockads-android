@@ -24,7 +24,7 @@ type AdBlockChecker interface {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MITM Proxy — Smart HTTPS proxy for popup blocking.
+// MITM Proxy — Smart HTTPS proxy for cosmetic ad filtering.
 //
 // Runs on 127.0.0.1:8080. The Kotlin VpnService routes browser traffic here.
 //
@@ -32,7 +32,7 @@ type AdBlockChecker interface {
 //   1. MitmFilter.IsInterceptionAllowed(host)?
 //      NO  → ForwardDirect (raw TCP tunnel, no decryption)
 //      YES → Attempt MITM TLS handshake
-//              ├── Handshake OK   → Inject popup-killer into HTML responses
+//              ├── Handshake OK   → Inject cosmetic CSS into HTML responses
 //              └── Handshake FAIL → Auto-blacklist domain, forward direct
 //
 // Resource management:
@@ -259,7 +259,7 @@ func (p *MitmProxy) handleConnect(clientConn net.Conn, req *http.Request) {
 		return
 	}
 
-	// ── Gate 3b: MITM — decrypt + inject popup-killer + cosmetic CSS ──
+	// ── Gate 3b: MITM — decrypt + inject cosmetic CSS ──
 	p.mitmIntercept(clientConn, host, hostname)
 }
 
@@ -330,7 +330,7 @@ func (p *MitmProxy) mitmIntercept(clientConn net.Conn, host, hostname string) {
 	}
 	defer clientTLS.Close()
 
-	// Handshake succeeded! Relay HTTP with popup injection.
+	// Handshake succeeded! Relay HTTP with cosmetic CSS injection.
 	p.relayHTTP(clientTLS, serverConn, hostname)
 }
 
@@ -373,7 +373,7 @@ func (p *MitmProxy) serveLocalAssetDirect(clientConn net.Conn, hostname string) 
 }
 
 // relayHTTP relays HTTP request/response pairs between the MITM'd client
-// and the real server, injecting the popup-killer into HTML responses.
+// and the real server, injecting cosmetic CSS into HTML responses.
 // Also applies Gate 1 (ad-blocking) to individual sub-requests within the
 // MITM'd TLS session (e.g., tracker scripts loaded as sub-resources).
 func (p *MitmProxy) relayHTTP(clientConn net.Conn, serverConn net.Conn, hostname string) {
