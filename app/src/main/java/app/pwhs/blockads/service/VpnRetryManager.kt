@@ -8,7 +8,6 @@ import timber.log.Timber
  */
 class VpnRetryManager(
     private val maxRetries: Int = 5,
-    private val initialDelayMs: Long = 1000L,
     private val maxDelayMs: Long = 60000L
 ) {
 

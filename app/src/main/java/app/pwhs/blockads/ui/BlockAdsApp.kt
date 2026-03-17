@@ -3,6 +3,7 @@ package app.pwhs.blockads.ui
 import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
@@ -237,7 +239,8 @@ fun HomeApp(onRequestVpnPermission: () -> Unit = {}) {
                         icon = {
                             Icon(
                                 painter = painterResource(screen.icon),
-                                contentDescription = stringResource(screen.labelRes)
+                                contentDescription = stringResource(screen.labelRes),
+                                modifier = Modifier.size(24.dp)
                             )
                         },
                         label = if (showBottomNavLabels) {

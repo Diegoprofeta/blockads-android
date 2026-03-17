@@ -436,7 +436,7 @@ class MmapDomainTrie(
 
     private fun matchWithWildcard(nodeOffset: Int, labels: List<String>, index: Int): Boolean {
         if (index < 0) return false
-        if (nodeOffset < 0 || nodeOffset >= bufferLimit) return false
+        if (nodeOffset !in 0..<bufferLimit) return false
         // Try exact label match
         val exactOffset = findChildOffset(nodeOffset, labels[index])
         if (exactOffset != null) {
@@ -498,7 +498,7 @@ class MmapDomainTrie(
                     // Found — return child node offset
                     val childOffset = buffer.getInt(pos + labelLen)
                     // Validate the offset is within buffer bounds
-                    if (childOffset < headerSize || childOffset >= bufferLimit) {
+                    if (childOffset !in headerSize..<bufferLimit) {
                         Timber.e("Corrupted trie: childOffset=$childOffset out of bounds (limit=$bufferLimit)")
                         return null
                     }

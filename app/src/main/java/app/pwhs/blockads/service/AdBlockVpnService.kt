@@ -72,12 +72,16 @@ private data class PrefsSnapshot(
 enum class VpnState {
     /** Service is not running. */
     STOPPED,
+
     /** Service is starting (loading filters, preparing tunnel). */
     STARTING,
+
     /** Tunnel is established and actively filtering traffic. */
     RUNNING,
+
     /** Service is in the process of shutting down. */
     STOPPING,
+
     /** Service is tearing down and will immediately re-start. */
     RESTARTING,
 }
@@ -135,7 +139,7 @@ class AdBlockVpnService : VpnService() {
     private lateinit var goTunnelAdapter: GoTunnelAdapter
     private var networkMonitor: NetworkMonitor? = null
     private val retryManager =
-        VpnRetryManager(maxRetries = 5, initialDelayMs = 1000L, maxDelayMs = 60000L)
+        VpnRetryManager(maxRetries = 5, maxDelayMs = 60000L)
     private lateinit var batteryMonitor: BatteryMonitor
     private lateinit var notificationHelper: NotificationHelper
     private var firewallManager: FirewallManager? = null
@@ -170,7 +174,7 @@ class AdBlockVpnService : VpnService() {
         filterRepo = koin.get()
         appPrefs = koin.get()
         dnsLogDao = koin.get()
-        
+
         appNameResolver = AppNameResolver(this)
         goTunnelAdapter = GoTunnelAdapter(
             vpnService = this,
@@ -180,7 +184,7 @@ class AdBlockVpnService : VpnService() {
             appNameResolver = appNameResolver,
             firewallManagerProvider = { firewallManager },
         )
-        
+
         firewallRuleDao = koin.get()
         batteryMonitor = BatteryMonitor(this)
         notificationHelper = NotificationHelper(this, appPrefs)
@@ -444,7 +448,7 @@ class AdBlockVpnService : VpnService() {
                         goTunnelAdapter.updateTries()
                     }
                 }
-                
+
                 // Read routing mode and WireGuard config from preferences
                 val routingMode = appPrefs.getRoutingModeSnapshot()
                 val wgConfigJson = if (routingMode == AppPreferences.ROUTING_MODE_WIREGUARD) {
@@ -460,7 +464,13 @@ class AdBlockVpnService : VpnService() {
                 vpnInterface?.let {
                     // start() blocks the coroutine while reading from TUN
                     // WireGuard init happens atomically inside Go before any packets are read
-                    goTunnelAdapter.start(it, wgConfigJson, httpsFilteringEnabled, selectedBrowsers, certDir)
+                    goTunnelAdapter.start(
+                        it,
+                        wgConfigJson,
+                        httpsFilteringEnabled,
+                        selectedBrowsers,
+                        certDir
+                    )
                 }
 
             } catch (e: Exception) {
@@ -470,7 +480,10 @@ class AdBlockVpnService : VpnService() {
         }
     }
 
-    private fun establishVpn(whitelistedApps: Set<String>, httpsFilteringEnabled: Boolean): Boolean {
+    private fun establishVpn(
+        whitelistedApps: Set<String>,
+        httpsFilteringEnabled: Boolean
+    ): Boolean {
         // First check if the system still grants us the VPN permission.
         if (VpnService.prepare(this) != null) {
             Timber.e("VPN is not prepared or permission was revoked.")
@@ -484,15 +497,18 @@ class AdBlockVpnService : VpnService() {
             val routingMode = kotlinx.coroutines.runBlocking {
                 appPrefs.getRoutingModeSnapshot()
             }
-            val wgConfig: WireGuardConfig? = if (routingMode == AppPreferences.ROUTING_MODE_WIREGUARD) {
-                val json = kotlinx.coroutines.runBlocking { appPrefs.getWgConfigJsonSnapshot() }
-                json?.let {
-                    try { WireGuardConfig.fromJson(it) } catch (e: Exception) {
-                        Timber.e(e, "Failed to parse WireGuard config, falling back to direct")
-                        null
+            val wgConfig: WireGuardConfig? =
+                if (routingMode == AppPreferences.ROUTING_MODE_WIREGUARD) {
+                    val json = kotlinx.coroutines.runBlocking { appPrefs.getWgConfigJsonSnapshot() }
+                    json?.let {
+                        try {
+                            WireGuardConfig.fromJson(it)
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to parse WireGuard config, falling back to direct")
+                            null
+                        }
                     }
-                }
-            } else null
+                } else null
 
             val builder = if (wgConfig != null) {
                 // WireGuard mode — full-route VPN (all traffic through TUN)
