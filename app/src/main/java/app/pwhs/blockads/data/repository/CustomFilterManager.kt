@@ -39,7 +39,7 @@ class CustomFilterManager(
      * @return The saved [FilterList] entity on success
      * @throws CustomFilterException on API errors
      */
-    suspend fun addCustomFilter(url: String): Result<FilterList> = withContext(Dispatchers.IO) {
+    suspend fun addCustomFilter(url: String, displayName: String? = null): Result<FilterList> = withContext(Dispatchers.IO) {
         val trimmedUrl = url.trim()
 
         try {
@@ -86,11 +86,13 @@ class CustomFilterManager(
                 )
             }
 
+            val finalName = displayName?.takeIf { it.isNotBlank() } ?: filterInfo.name
+
             // ── Step 5: Insert entity to get auto-generated ID ──────────
             val filterEntity = FilterList(
-                name = filterInfo.name,
+                name = finalName,
                 url = trimmedUrl,
-                description = "Custom filter: ${filterInfo.name}",
+                description = "Custom filter: $finalName",
                 isEnabled = true,
                 isBuiltIn = false,
                 category = FilterList.CATEGORY_AD,

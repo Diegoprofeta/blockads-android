@@ -89,7 +89,7 @@ class FilterSetupViewModel(
 
             // Use backend compiler API to build optimized binary files
             _isAddingCustomFilter.value = true
-            val result = customFilterManager.addCustomFilter(trimmedUrl)
+            val result = customFilterManager.addCustomFilter(trimmedUrl, name.trim())
             _isAddingCustomFilter.value = false
 
             result.fold(
