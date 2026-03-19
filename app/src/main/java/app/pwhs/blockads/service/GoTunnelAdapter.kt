@@ -4,7 +4,7 @@ import android.os.ParcelFileDescriptor
 import app.pwhs.blockads.data.dao.DnsLogDao
 import app.pwhs.blockads.data.entities.DnsLogEntry
 import app.pwhs.blockads.data.repository.FilterListRepository
-import app.pwhs.blockads.util.AppNameResolver
+import app.pwhs.blockads.utils.AppNameResolver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,7 +12,6 @@ import timber.log.Timber
 import tunnel.AppResolver
 import tunnel.DomainChecker
 import tunnel.FirewallChecker
-import tunnel.LogCallback
 import tunnel.SocketProtector
 
 /**
@@ -248,13 +247,14 @@ class GoTunnelAdapter(
 
     /**
      * Update the Go engine with the latest Trie and Bloom Filter file paths dynamically.
+     * Paths are CSV-formatted strings (e.g., "path1,path2,path3").
      */
     fun updateTries() {
         engine.setTries(
-            filterRepo.getAdTriePath() ?: "",
-            filterRepo.getSecurityTriePath() ?: "",
-            filterRepo.getAdBloomPath() ?: "",
-            filterRepo.getSecurityBloomPath() ?: ""
+            filterRepo.getAdTriePath(),
+            filterRepo.getSecurityTriePath(),
+            filterRepo.getAdBloomPath(),
+            filterRepo.getSecurityBloomPath()
         )
     }
 

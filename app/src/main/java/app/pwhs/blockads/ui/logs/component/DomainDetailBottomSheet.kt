@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,6 +26,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +41,7 @@ import app.pwhs.blockads.data.repository.FilterListRepository
 import app.pwhs.blockads.ui.theme.DangerRed
 import app.pwhs.blockads.ui.theme.TextSecondary
 import app.pwhs.blockads.ui.theme.WhitelistAmber
-import app.pwhs.blockads.util.formatTimestamp
+import app.pwhs.blockads.utils.formatTimestamp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,8 +70,8 @@ fun DomainDetailBottomSheet(
 
     // State for fetching specific blocking lists
     val blockingLists = remember { androidx.compose.runtime.mutableStateOf<List<String>?>(null) }
-    
-    androidx.compose.runtime.LaunchedEffect(entry) {
+
+    LaunchedEffect(entry) {
         if (entry.isBlocked && entry.blockedBy.equals(FilterListRepository.BLOCK_REASON_FILTER_LIST, ignoreCase = true)) {
             viewModel.getBlockingFilterLists(entry.domain) { lists ->
                 blockingLists.value = lists

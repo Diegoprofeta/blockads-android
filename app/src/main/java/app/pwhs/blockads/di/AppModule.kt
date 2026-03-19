@@ -4,6 +4,9 @@ import app.pwhs.blockads.BuildConfig
 import app.pwhs.blockads.data.AppDatabase
 import app.pwhs.blockads.data.datastore.AppPreferences
 import app.pwhs.blockads.data.entities.ProfileManager
+import app.pwhs.blockads.data.remote.FilterDownloadManager
+import app.pwhs.blockads.data.remote.api.CustomFilterApi
+import app.pwhs.blockads.data.repository.CustomFilterManager
 import app.pwhs.blockads.data.repository.FilterListRepository
 import app.pwhs.blockads.ui.dnsprovider.DnsProviderViewModel
 import app.pwhs.blockads.ui.filter.detail.FilterDetailViewModel
@@ -81,7 +84,10 @@ val appModule = module {
     single { AppPreferences(androidContext()) }
 
     // Repository
-    single { FilterListRepository(androidContext(), get(), get(), get(), get()) }
+    single { FilterDownloadManager(androidContext(), get()) }
+    single { FilterListRepository(androidContext(), get(), get(), get(), get(), get()) }
+    single { CustomFilterApi(get()) }
+    single { CustomFilterManager(androidContext(), get(), get(), get()) }
 
     // Profile Manager
     single { ProfileManager(get(), get(), get(), get()) }
@@ -104,9 +110,9 @@ val appModule = module {
             application = androidApplication()
         )
     }
-    viewModel { FilterSetupViewModel(get(), get(), androidApplication()) }
+    viewModel { FilterSetupViewModel(get(), get(), get(), androidApplication()) }
     viewModel { (filterId: Long) ->
-        FilterDetailViewModel(filterId, get(), get(), androidApplication())
+        FilterDetailViewModel(filterId, get(), get(), get(), androidApplication(), get())
     }
     viewModel {
         AppWhitelistViewModel(
