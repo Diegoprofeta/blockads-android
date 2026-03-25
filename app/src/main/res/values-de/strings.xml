@@ -498,7 +498,6 @@
     <string name="firewall_channel_description">Benachrichtigungen, wenn Apps durch die Firewall blockiert werden</string>
     <string name="firewall_notification_title">App durch Firewall blockiert</string>
     <string name="firewall_notification_text">%s wurde am Internetugriff gehindert</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">Mobil</string>
     <string name="firewall_network_all">Alle</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

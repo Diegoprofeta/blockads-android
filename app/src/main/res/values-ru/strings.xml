@@ -497,7 +497,6 @@
     <string name="firewall_channel_description">Уведомления, когда приложения блокируются брандмауэром</string>
     <string name="firewall_notification_title">Приложение заблокировано брандмауэром</string>
     <string name="firewall_notification_text">Для %s заблокирован доступ в интернет</string>
-    <string name="firewall_network_wifi">Wi‑Fi</string>
     <string name="firewall_network_mobile">Мобильная сеть</string>
     <string name="firewall_network_all">Все</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

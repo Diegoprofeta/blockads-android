@@ -379,7 +379,6 @@
     <string name="firewall_channel_description">Notificaciones cuando las aplicaciones son bloqueadas por el firewall</string>
     <string name="firewall_notification_title">Aplicación bloqueada por el firewall</string>
     <string name="firewall_notification_text">Se ha bloqueado el acceso a internet para %s</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">Móvil</string>
     <string name="firewall_network_all">Todas</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

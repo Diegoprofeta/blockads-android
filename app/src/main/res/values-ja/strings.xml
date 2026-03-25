@@ -379,7 +379,6 @@
     <string name="firewall_channel_description">ファイアウォールによってアプリがブロックされたときの通知</string>
     <string name="firewall_notification_title">ファイアウォールによってアプリがブロックされました</string>
     <string name="firewall_notification_text">%sのインターネットアクセスがブロックされました</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">モバイル</string>
     <string name="firewall_network_all">すべて</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

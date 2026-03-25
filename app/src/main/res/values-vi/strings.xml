@@ -498,7 +498,6 @@
     <string name="firewall_channel_description">Thông báo khi ứng dụng bị chặn bởi tường lửa</string>
     <string name="firewall_notification_title">Ứng dụng bị chặn bởi tường lửa</string>
     <string name="firewall_notification_text">%s đã bị chặn truy cập internet</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">Di động</string>
     <string name="firewall_network_all">Tất cả</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

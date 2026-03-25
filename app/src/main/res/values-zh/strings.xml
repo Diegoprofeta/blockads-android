@@ -371,7 +371,6 @@
     <string name="firewall_channel_description">应用被防火墙拦截时的通知</string>
     <string name="firewall_notification_title">应用已被防火墙拦截</string>
     <string name="firewall_notification_text">%s 的联网请求已被拦截</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">移动数据</string>
     <string name="firewall_network_all">全部</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

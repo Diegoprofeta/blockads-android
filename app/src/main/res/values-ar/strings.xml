@@ -135,7 +135,6 @@
     <string name="firewall_enable_desc">حظر الوصول إلى الإنترنت للتطبيقات المحددة عبر DNS</string>
     <string name="firewall_network_all">الكل</string>
     <string name="firewall_network_mobile">الجوال</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_notification_text">تم منع %s من الوصول إلى الإنترنت</string>
     <string name="firewall_notification_title">تم حظر التطبيق بواسطة جدار الحماية</string>
     <string name="firewall_schedule">الجدول الزمني</string>

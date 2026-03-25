@@ -403,7 +403,6 @@
     <string name="firewall_channel_description">Oznámení při zablokování aplikace firewallem</string>
     <string name="firewall_notification_title">Aplikace zablokována firewallem</string>
     <string name="firewall_notification_text">Aplikaci %s byl zamezen přístup k internetu</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">Mobilní data</string>
     <string name="firewall_network_all">Vše</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

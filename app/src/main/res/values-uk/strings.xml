@@ -489,7 +489,6 @@
     <string name="firewall_channel_description">Сповіщення, коли додатки блокуються брандмауером</string>
     <string name="firewall_notification_title">Додаток заблоковано брандмауером</string>
     <string name="firewall_notification_text">Доступ до інтернету для %s було заблоковано</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">Мобільна мережа</string>
     <string name="firewall_network_all">Усі</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

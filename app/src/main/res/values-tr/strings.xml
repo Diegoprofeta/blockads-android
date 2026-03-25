@@ -520,7 +520,6 @@ Desteklenen formatlar:
     <string name="firewall_channel_description">Uygulamalar güvenlik duvarı tarafından engellendiğinde gelen bildirimler</string>
     <string name="firewall_notification_title">Uygulama güvenlik duvarı tarafından engellendi</string>
     <string name="firewall_notification_text">%s uygulamasının internete erişimi engellendi</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">Mobil</string>
     <string name="firewall_network_all">Hepsi</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>

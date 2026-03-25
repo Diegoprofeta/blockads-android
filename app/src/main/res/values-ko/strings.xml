@@ -371,7 +371,6 @@
     <string name="firewall_channel_description">방화벽에 의해 앱이 차단될 때 알림</string>
     <string name="firewall_notification_title">방화벽에 의해 앱이 차단되었습니다</string>
     <string name="firewall_notification_text">%s의 인터넷 액세스가 차단되었습니다</string>
-    <string name="firewall_network_wifi">Wi-Fi</string>
     <string name="firewall_network_mobile">모바일</string>
     <string name="firewall_network_all">모두</string>
     <string name="firewall_status_schedule"> · %1$02d:%2$02d–%3$02d:%4$02d</string>
