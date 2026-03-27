@@ -21,6 +21,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import java.util.Locale
+import app.pwhs.blockads.utils.startOfDayMillis
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -78,6 +80,10 @@ class RootProxyService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var watchdogJob: Job? = null
+    private var notificationUpdateJob: Job? = null
+
+    @Volatile
+    private var todayBlockedCount: Int = 0
     private lateinit var appPrefs: AppPreferences
     private lateinit var filterRepo: FilterListRepository
     private lateinit var dnsLogDao: DnsLogDao
@@ -164,6 +170,9 @@ class RootProxyService : Service() {
                 startTimestamp = System.currentTimeMillis()
                 Timber.d("Root Proxy mode active — DNS traffic redirected to :15353")
 
+                updateNotification()
+                startNotificationUpdates()
+
                 // 4. Start watchdog
                 startWatchdog()
             } catch (e: Exception) {
@@ -178,6 +187,7 @@ class RootProxyService : Service() {
         Timber.d("Stopping Root Proxy mode")
         _state.value = VpnState.STOPPING
         watchdogJob?.cancel()
+        stopNotificationUpdates()
 
         // Teardown iptables rules (critical — prevents internet loss)
         IptablesManager.teardownRules()
@@ -223,6 +233,7 @@ class RootProxyService : Service() {
         _state.value = VpnState.STOPPED
         startTimestamp = 0L
         watchdogJob?.cancel()
+        stopNotificationUpdates()
         IptablesManager.teardownRules()
         serviceScope.cancel()
         super.onDestroy()
@@ -259,6 +270,14 @@ class RootProxyService : Service() {
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
+        
+        val stopIntent = Intent(this, RootProxyService::class.java).apply {
+            action = ACTION_STOP
+        }
+        val stopPendingIntent = PendingIntent.getService(
+            this, 1, stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, CHANNEL_ID)
@@ -267,12 +286,66 @@ class RootProxyService : Service() {
             Notification.Builder(this)
         }
 
+        val text = if (isRunning) {
+            val uptimeStr = formatUptime(System.currentTimeMillis() - startTimestamp)
+            getString(R.string.vpn_notification_stats_today, todayBlockedCount, uptimeStr)
+        } else {
+            getString(R.string.root_proxy_notification_text)
+        }
+
         return builder
             .setContentTitle(getString(R.string.vpn_notification_title))
-            .setContentText(getString(R.string.root_proxy_notification_text))
+            .setContentText(text)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    null, getString(R.string.vpn_notification_action_stop), stopPendingIntent
+                ).build()
+            )
             .setOngoing(true)
             .build()
+    }
+    
+    private fun startNotificationUpdates() {
+        notificationUpdateJob?.cancel()
+
+        notificationUpdateJob = serviceScope.launch {
+            while (isActive && isRunning) {
+                try {
+                    todayBlockedCount = dnsLogDao.getBlockedCountSinceSync(startOfDayMillis())
+                    delay(30_000L)
+                    if (isRunning) {
+                        updateNotification()
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Error updating notification in RootProxyService")
+                    break
+                }
+            }
+        }
+    }
+
+    private fun stopNotificationUpdates() {
+        notificationUpdateJob?.cancel()
+        notificationUpdateJob = null
+    }
+
+    private fun updateNotification() {
+        val notification = buildNotification()
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun formatUptime(millis: Long): String {
+        val totalSeconds = millis / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+        return if (hours > 0) {
+            String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
+        }
     }
 }
