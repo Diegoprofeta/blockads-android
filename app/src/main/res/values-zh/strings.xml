@@ -503,7 +503,6 @@
     <string name="wireguard_section_peer">节点 (Peer) %d</string>
     <string name="wireguard_label_address">地址</string>
     <string name="wireguard_label_private_key">私钥</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">监听端口</string>
     <string name="wireguard_label_public_key">公钥</string>
     <string name="wireguard_label_endpoint">端点</string>

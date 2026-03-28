@@ -538,7 +538,6 @@
     <string name="wireguard_section_peer">Peer %d</string>
     <string name="wireguard_label_address">Adresse</string>
     <string name="wireguard_label_private_key">Private Key</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Listen Port</string>
     <string name="wireguard_label_public_key">Public Key</string>
     <string name="wireguard_label_endpoint">Endpoint</string>

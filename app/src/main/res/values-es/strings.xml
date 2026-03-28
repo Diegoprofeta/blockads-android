@@ -504,7 +504,6 @@
     <string name="wireguard_section_peer">Punto (Peer) %d</string>
     <string name="wireguard_label_address">Dirección</string>
     <string name="wireguard_label_private_key">Clave privada</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Puerto de escucha</string>
     <string name="wireguard_label_public_key">Clave pública</string>
     <string name="wireguard_label_endpoint">Endpoint</string>

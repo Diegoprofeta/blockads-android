@@ -556,7 +556,6 @@
     <string name="wireguard_section_peer">Peer %d</string>
     <string name="wireguard_label_address">Indirizzo</string>
     <string name="wireguard_label_private_key">Chiave privata</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Porta in ascolto</string>
     <string name="wireguard_label_public_key">Chiave pubblica</string>
     <string name="wireguard_label_endpoint">Endpoint</string>

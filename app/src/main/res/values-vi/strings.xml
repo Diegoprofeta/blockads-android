@@ -554,7 +554,6 @@
     <string name="wireguard_section_peer">Máy khách %d</string>
     <string name="wireguard_label_address">Địa chỉ</string>
     <string name="wireguard_label_private_key">Khóa riêng tư</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Cổng nghe</string>
     <string name="wireguard_label_public_key">Khóa công khai</string>
     <string name="wireguard_label_endpoint">Điểm cuối</string>

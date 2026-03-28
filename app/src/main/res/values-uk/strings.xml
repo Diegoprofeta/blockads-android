@@ -529,7 +529,6 @@
     <string name="wireguard_section_peer">Вузол (Peer) %d</string>
     <string name="wireguard_label_address">Адреса</string>
     <string name="wireguard_label_private_key">Приватний ключ</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Порт прослуховування</string>
     <string name="wireguard_label_public_key">Публічний ключ</string>
     <string name="wireguard_label_endpoint">Кінцева точка (Endpoint)</string>

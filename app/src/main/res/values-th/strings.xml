@@ -505,7 +505,6 @@
     <string name="wireguard_section_peer">เพียร์ (Peer) %d</string>
     <string name="wireguard_label_address">ที่อยู่</string>
     <string name="wireguard_label_private_key">คีย์ส่วนตัว</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">พอร์ตการฟัง</string>
     <string name="wireguard_label_public_key">คีย์สาธารณะ</string>
     <string name="wireguard_label_endpoint">ปลายทาง (Endpoint)</string>

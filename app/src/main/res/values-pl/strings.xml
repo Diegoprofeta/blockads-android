@@ -528,7 +528,6 @@
     <string name="wireguard_section_peer">Peer %d</string>
     <string name="wireguard_label_address">Adres</string>
     <string name="wireguard_label_private_key">Klucz prywatny</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Port nasłuchiwania</string>
     <string name="wireguard_label_public_key">Klucz publiczny</string>
     <string name="wireguard_label_endpoint">Punkt końcowy (Endpoint)</string>

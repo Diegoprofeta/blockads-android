@@ -574,7 +574,6 @@ Desteklenen formatlar:
     <string name="wireguard_section_peer">Eş (Peer) %d</string>
     <string name="wireguard_label_address">Adres</string>
     <string name="wireguard_label_private_key">Özel Anahtar</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Dinleme Portu</string>
     <string name="wireguard_label_public_key">Genel Anahtar</string>
     <string name="wireguard_label_endpoint">Bitiş Noktası (Endpoint)</string>

@@ -552,7 +552,6 @@
     <string name="wireguard_section_peer">Пир %d</string>
     <string name="wireguard_label_address">Адрес</string>
     <string name="wireguard_label_private_key">Закрытый ключ</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Порт прослушивания</string>
     <string name="wireguard_label_public_key">Открытый ключ</string>
     <string name="wireguard_label_endpoint">Конечная точка (Endpoint)</string>

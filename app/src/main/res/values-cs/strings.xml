@@ -443,7 +443,6 @@
     <string name="wireguard_section_peer">Peer %d</string>
     <string name="wireguard_label_address">Adresa</string>
     <string name="wireguard_label_private_key">Soukromý klíč</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Naslouchací port</string>
     <string name="wireguard_label_public_key">Veřejný klíč</string>
     <string name="wireguard_label_endpoint">Koncový bod (Endpoint)</string>

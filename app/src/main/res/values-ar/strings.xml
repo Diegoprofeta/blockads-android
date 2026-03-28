@@ -519,7 +519,6 @@
     <string name="wireguard_section_peer">نظير (Peer) %d</string>
     <string name="wireguard_label_address">العنوان</string>
     <string name="wireguard_label_private_key">المفتاح الخاص</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">منفذ الاستماع</string>
     <string name="wireguard_label_public_key">المفتاح العام</string>
     <string name="wireguard_label_endpoint">نقطة النهاية (Endpoint)</string>
@@ -575,6 +574,7 @@
     <string name="open_settings">فتح الإعدادات</string>
     <string name="disable_all_user_apps">تعطيل جميع تطبيقات المستخدم</string>
     <string name="enable_all_user_apps">تمكين جميع تطبيقات المستخدم</string>
+    <string name="disable_all_system_apps">تعطيل جميع تطبيقات النظام</string>
     <string name="disable_all_system_apps">تعطيل جميع تطبيقات النظام</string>
     <string name="enable_all_system_apps">تمكين جميع تطبيقات النظام</string>
     <string name="vpn_network_switch_waiting">في انتظار استقرار الشبكة… %1$ds</string>

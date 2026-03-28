@@ -528,7 +528,6 @@
     <string name="wireguard_section_peer">Ponto (Peer) %d</string>
     <string name="wireguard_label_address">Endereço</string>
     <string name="wireguard_label_private_key">Chave Privada</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Porta de Escuta</string>
     <string name="wireguard_label_public_key">Chave Pública</string>
     <string name="wireguard_label_endpoint">Ponto de extremidade (Endpoint)</string>

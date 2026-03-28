@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name" translatable="false">BlockAds</string>
     <string name="app_tagline">Navigation sans publicité</string>
     <string name="notification_channel_name">Service de blocage des publicités</string>
     <string name="notification_channel_description">Indique quand le bloqueur de publicités VPN est activé</string>
@@ -187,25 +186,6 @@
     <string name="settings_show_bottom_nav_labels_desc">Afficher le texte sous les icônes dans la barre de navigation inférieure</string>
     <string name="settings_theme_dark">Sombre</string>
     <string name="settings_lang_system">Système</string>
-    <string name="settings_lang_en" translatable="false">English</string>
-    <string name="settings_lang_vi" translatable="false">Tiếng Việt</string>
-    <string name="settings_lang_ja" translatable="false">日本語</string>
-    <string name="settings_lang_ko" translatable="false">한국어</string>
-    <string name="settings_lang_zh" translatable="false">中文</string>
-    <string name="settings_lang_th" translatable="false">ไทย</string>
-    <string name="settings_lang_es" translatable="false">Español</string>
-    <string name="settings_lang_ru" translatable="false">Русский</string>
-    <string name="settings_lang_it" translatable="false">Italiano</string>
-    <string name="settings_lang_ar" translatable="false">العربية</string>
-    <string name="settings_lang_tr" translatable="false">Türkçe</string>
-    <string name="settings_lang_pl" translatable="false">Polski</string>
-    <string name="settings_lang_in" translatable="false">Bahasa Indonesia</string>
-    <string name="settings_lang_pt_br" translatable="false">Português (Brasil)</string>
-    <string name="settings_lang_uk" translatable="false">Українська</string>
-    <string name="settings_lang_de" translatable="false">Deutsch</string>
-    <string name="settings_lang_cs" translatable="false">Čeština</string>
-    <string name="settings_lang_iw" translatable="false">עברית</string>
-    <string name="settings_lang_fr" translatable="false">Français</string>
     <string name="settings_high_contrast">Contraste élevé</string>
     <string name="settings_high_contrast_desc">Augmentez le contraste pour une meilleure visibilité</string>
     <string name="settings_accent_color">Couleur d\'accentuation</string>
@@ -252,14 +232,12 @@
     <string name="settings_doq_server_url">URL du serveur DoQ</string>
     <string name="settings_upstream_dns">Serveur DNS en amont</string>
     <string name="settings_fallback_dns">Serveur DNS de secours</string>
-    <string name="settings_fallback_dns_placeholder" translatable="false">1.1.1.1</string>
     <string name="settings_fallback_dns_desc">Le DNS de secours est utilisé en cas de défaillance de votre serveur DNS principal. Saisissez l\'adresse IP d'un serveur DNS de secours.</string>
     <string name="settings_fallback_dns_short_desc">Utilisé comme solution de secours en cas de défaillance du DNS principal</string>
     <string name="dns_error_duplicate">Le DNS de secours ne peut pas être identique au DNS personnalisé</string>
     <string name="dns_category_fallback">Solution de secours</string>
     <string name="settings_fallback_dns_not_set">Non défini (pas de sauvegarde)</string>
     <string name="settings_custom_dns_server">Serveur DNS personnalisé</string>
-    <string name="settings_custom_dns_placeholder" translatable="false">8.8.8.8, https://…, tls://…, quic://…</string>
     <string name="settings_custom_dns_hint">Entrez l\'adresse IP pour le DNS standard, https:// pour DoH, tls:// pour DoT ou quic:// pour DoQ</string>
     <string name="settings_detected_plain">DNS simple</string>
     <string name="settings_detected_doh">DNS-over-HTTPS (DoH)</string>
@@ -270,9 +248,7 @@
     <string name="settings_save_custom_dns">Enregistrer le DNS</string>
     <string name="settings_dns_response_type">Type de réponse DNS</string>
     <string name="settings_dns_response_type_desc">Type de réponse pour les domaines bloqués</string>
-    <string name="dns_response_nxdomain" translatable="false">NXDOMAIN</string>
     <string name="dns_response_nxdomain_desc">Le domaine n\'existe pas (message standard)</string>
-    <string name="dns_response_refused" translatable="false">REFUSÉ</string>
     <string name="dns_response_refused_desc">Requête refusée (meilleure compatibilité)</string>
     <string name="dns_response_custom_ip">Adresse IP personnalisée (0.0.0.0)</string>
     <string name="dns_response_custom_ip_desc">Renvoie une adresse de route nulle (par défaut)</string>
@@ -548,7 +524,6 @@
     <string name="firewall_channel_description">Notifications lorsque des applications sont bloquées par le pare-feu</string>
     <string name="firewall_notification_title">Application bloquée par le pare-feu</string>
     <string name="firewall_notification_text">%s n\'a pas pu accéder à Internet</string>
-    <string name="firewall_network_wifi" translatable="false">Wi-Fi</string>
     <string name="firewall_network_mobile">Mobile</string>
     <string name="firewall_network_all">Tout</string>
     <string name="firewall_schedule_hour_plus">Heure +</string>
@@ -562,9 +537,7 @@
     <string name="settings_sponsor">Soutenez-nous</string>
     <string name="settings_sponsor_desc">Soutenez le développement de BlockAds sur GitHub</string>
     <string name="settings_community">Communauté</string>
-    <string name="settings_reddit">Reddit</string>
     <string name="settings_reddit_desc">Rejoignez notre communauté sur Reddit</string>
-    <string name="settings_telegram">Telegram</string>
     <string name="settings_telegram_desc">Rejoignez notre discussion sur Telegram</string>
     <string name="filter_setup_active_count">%1$d actifs</string>
     <string name="copied_url">URL copiée</string>
@@ -593,7 +566,6 @@
     <string name="wireguard_section_peer">Pair %d</string>
     <string name="wireguard_label_address">Adresse</string>
     <string name="wireguard_label_private_key">Clé privée</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Port d\'écoute</string>
     <string name="wireguard_label_public_key">Clé publique</string>
     <string name="wireguard_label_endpoint">Point d\'extrémité</string>

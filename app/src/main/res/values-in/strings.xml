@@ -528,7 +528,6 @@
     <string name="wireguard_section_peer">Rekan %d</string>
     <string name="wireguard_label_address">Alamat</string>
     <string name="wireguard_label_private_key">Kunci Privat</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">Port Dengar</string>
     <string name="wireguard_label_public_key">Kunci Publik</string>
     <string name="wireguard_label_endpoint">Titik Akhir (Endpoint)</string>

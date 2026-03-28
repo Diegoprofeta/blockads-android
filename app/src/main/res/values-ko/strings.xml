@@ -503,7 +503,6 @@
     <string name="wireguard_section_peer">피어 %d</string>
     <string name="wireguard_label_address">주소</string>
     <string name="wireguard_label_private_key">개인 키</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">수신 포트</string>
     <string name="wireguard_label_public_key">공개 키</string>
     <string name="wireguard_label_endpoint">엔드포인트</string>

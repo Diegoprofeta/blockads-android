@@ -539,7 +539,6 @@
     <string name="wireguard_section_peer">עמית (Peer) %d</string>
     <string name="wireguard_label_address">כתובת</string>
     <string name="wireguard_label_private_key">מפתח פרטי</string>
-    <string name="wireguard_label_dns">DNS</string>
     <string name="wireguard_label_listen_port">יציאת האזנה (Listen Port)</string>
     <string name="wireguard_label_public_key">מפתח ציבורי</string>
     <string name="wireguard_label_endpoint">נקודת קצה (Endpoint)</string>
