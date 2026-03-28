@@ -594,4 +594,18 @@
     <string name="settings_root_proxy_desc">Přesměrovat DNS přes iptables místo VPN (vyžaduje Root)</string>
     <string name="root_not_available">Přístup Root není k dispozici. Udělte prosím oprávnění ve správci root (např. Magisk/KernelSU).</string>
     <string name="root_proxy_notification_text">Režim Root Proxy je aktivní — provoz DNS je přesměrován přes iptables</string>
+    <string name="onboarding_crash_report_title">Pomozte vylepšit BlockAds</string>
+    <string name="onboarding_crash_report_desc">BlockAds klade soukromí na první místo. Rádi bychom vás požádali o svolení shromažďovat anonymní zprávy o chybách, které nám pomohou rychle řešit problémy.\n\nTato volba je přísně DOBROVOLNÁ, neobsahuje ŽÁDNÉ osobní identifikační údaje (PII) a lze ji kdykoli vypnout v Nastavení.</string>
+    <string name="onboarding_crash_report_btn_yes">Ano, chci pomoci vylepšit BlockAds</string>
+    <string name="onboarding_crash_report_btn_no">Ne, děkuji</string>
+    <string name="settings_privacy_diagnostics_title">Soukromí &amp; Diagnostika</string>
+    <string name="settings_privacy_diagnostics_desc">Správa hlášení o chybách a místních protokolů</string>
+
+    <string name="settings_crash_reporting_title">Anonymní hlášení o chybách</string>
+    <string name="settings_crash_reporting_subtitle">Automaticky odesílat protokoly o chybách, aby nám to pomohlo vyřešit problémy. Nejsou zahrnuty žádné osobní údaje.</string>
+
+    <string name="settings_export_logs_title">Exportovat místní protokoly</string>
+    <string name="settings_export_logs_subtitle">Sdílejte offline protokoly ladění přímo přes e-mail, Telegram atd.</string>
+    <string name="settings_export_logs_chooser_title">Sdílet protokoly</string>
+    <string name="settings_export_logs_not_found">Nebyly nalezeny žádné protokoly k exportu</string>
 </resources>

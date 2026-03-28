@@ -104,7 +104,10 @@ fun OnboardingScreen(
     var notificationPermissionGranted by remember {
         mutableStateOf(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) ==
                         android.content.pm.PackageManager.PERMISSION_GRANTED
             } else true
         )
@@ -253,13 +256,15 @@ fun OnboardingScreen(
                         onRequestPermission = {
                             try {
                                 @Suppress("BatteryLife")
-                                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                    data = "package:${context.packageName}".toUri()
-                                }
+                                val intent =
+                                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                        data = "package:${context.packageName}".toUri()
+                                    }
                                 batteryOptLauncher.launch(intent)
                             } catch (e: Exception) {
                                 try {
-                                    val fallbackIntent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                    val fallbackIntent =
+                                        Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                                     batteryOptLauncher.launch(fallbackIntent)
                                 } catch (e2: Exception) {
                                     e2.printStackTrace()

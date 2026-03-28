@@ -119,7 +119,6 @@ fun HomeScreen(
         modifier = modifier,
         topBar = {
             HomeAppBar(
-                context = context,
                 isLoading = isLoading,
                 filterLoadFailed = filterLoadFailed,
                 viewModel = viewModel,

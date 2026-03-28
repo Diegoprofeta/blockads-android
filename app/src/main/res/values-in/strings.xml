@@ -591,4 +591,18 @@
     <string name="settings_root_proxy_desc">Alihkan DNS melalui iptables alih-alih VPN (memerlukan Root)</string>
     <string name="root_not_available">Akses root tidak tersedia. Harap berikan izin di manajer root Anda (mis. Magisk/KernelSU).</string>
     <string name="root_proxy_notification_text">Mode Proxy Root aktif — lalu lintas DNS dialihkan melalui iptables</string>
+    <string name="onboarding_crash_report_title">Bantu Tingkatkan BlockAds</string>
+    <string name="onboarding_crash_report_desc">BlockAds sangat mengutamakan privasi. Kami meminta izin Anda untuk mengumpulkan laporan kerusakan anonim guna membantu kami memperbaiki bug dengan cepat.\n\nIni sepenuhnya OPSIONAL, TIDAK berisi informasi identitas pribadi (PII), dan dapat dinonaktifkan kapan saja di Pengaturan.</string>
+    <string name="onboarding_crash_report_btn_yes">Ya, bantu tingkatkan BlockAds</string>
+    <string name="onboarding_crash_report_btn_no">Tidak, terima kasih</string>
+    <string name="settings_privacy_diagnostics_title">Privasi &amp; Diagnostik</string>
+    <string name="settings_privacy_diagnostics_desc">Kelola laporan kerusakan dan log lokal</string>
+
+    <string name="settings_crash_reporting_title">Laporan Kerusakan Anonim</string>
+    <string name="settings_crash_reporting_subtitle">Kirim log kesalahan secara otomatis untuk membantu kami memperbaiki masalah. Tidak ada data pribadi yang disertakan.</string>
+
+    <string name="settings_export_logs_title">Ekspor Log Lokal</string>
+    <string name="settings_export_logs_subtitle">Bagikan log debug offline langsung melalui Email, Telegram, dll.</string>
+    <string name="settings_export_logs_chooser_title">Bagikan Log</string>
+    <string name="settings_export_logs_not_found">Tidak ada log yang ditemukan untuk diekspor</string>
 </resources>

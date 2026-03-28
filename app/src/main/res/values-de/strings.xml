@@ -600,4 +600,18 @@
     <string name="settings_root_proxy_desc">DNS über iptables statt VPN umleiten (erfordert Root)</string>
     <string name="root_not_available">Root-Zugriff nicht verfügbar. Bitte erteilen Sie die Berechtigung in Ihrem Root-Manager (z. B. Magisk/KernelSU).</string>
     <string name="root_proxy_notification_text">Root-Proxy-Modus aktiv — DNS-Verkehr über iptables umgeleitet</string>
+    <string name="onboarding_crash_report_title">Hilf mit, BlockAds zu verbessern</string>
+    <string name="onboarding_crash_report_desc">BlockAds ist zu 100% datenschutzorientiert. Wir bitten um deine Erlaubnis, anonyme Absturzberichte zu sammeln, um Fehler schnell beheben zu können.\n\nDies ist streng OPTIONAL (Opt-in), enthält KEINE personenbezogenen Daten (PII) und kann jederzeit in den Einstellungen deaktiviert werden.</string>
+    <string name="onboarding_crash_report_btn_yes">Ja, BlockAds verbessern</string>
+    <string name="onboarding_crash_report_btn_no">Nein, danke</string>
+    <string name="settings_privacy_diagnostics_title">Datenschutz &amp; Diagnose</string>
+    <string name="settings_privacy_diagnostics_desc">Absturzberichte und lokale Protokolle verwalten</string>
+
+    <string name="settings_crash_reporting_title">Anonyme Absturzberichte</string>
+    <string name="settings_crash_reporting_subtitle">Fehlerprotokolle automatisch senden, um Probleme zu beheben. Es werden keine persönlichen Daten erfasst.</string>
+
+    <string name="settings_export_logs_title">Lokale Protokolle exportieren</string>
+    <string name="settings_export_logs_subtitle">Offline-Debug-Protokolle direkt per E-Mail, Telegram usw. teilen.</string>
+    <string name="settings_export_logs_chooser_title">Protokolle teilen</string>
+    <string name="settings_export_logs_not_found">Keine Protokolle zum Exportieren gefunden</string>
 </resources>

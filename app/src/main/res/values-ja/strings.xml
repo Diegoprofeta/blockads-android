@@ -568,4 +568,18 @@
     <string name="settings_root_proxy_desc">VPNの代わりにiptables経由でDNSをリダイレクト（Rootが必要）</string>
     <string name="root_not_available">Rootアクセスを利用できません。Rootマネージャー（Magisk/KernelSUなど）で権限を付与してください。</string>
     <string name="root_proxy_notification_text">Rootプロキシモードがアクティブです — DNSトラフィックはiptables経由でリダイレクトされています</string>
+    <string name="onboarding_crash_report_title">BlockAdsの改善にご協力ください</string>
+    <string name="onboarding_crash_report_desc">BlockAdsはプライバシーを第一に考えています。バグを迅速に修正するため、匿名のクラッシュレポートを収集する許可を頂けないでしょうか。\n\nこれは完全に任意（オプトイン）であり、個人を特定できる情報（PII）は一切含まれません。設定からいつでも無効にできます。</string>
+    <string name="onboarding_crash_report_btn_yes">はい、改善に協力します</string>
+    <string name="onboarding_crash_report_btn_no">いいえ、結構です</string>
+    <string name="settings_privacy_diagnostics_title">プライバシー &amp; 診断</string>
+    <string name="settings_privacy_diagnostics_desc">クラッシュレポートとローカルログの管理</string>
+
+    <string name="settings_crash_reporting_title">匿名のクラッシュレポート</string>
+    <string name="settings_crash_reporting_subtitle">問題解決のためにエラーログを自動的に送信します。個人データは含まれません。</string>
+
+    <string name="settings_export_logs_title">ローカルログのエクスポート</string>
+    <string name="settings_export_logs_subtitle">オフラインのデバッグログをメールやTelegramなどで直接共有します。</string>
+    <string name="settings_export_logs_chooser_title">ログを共有</string>
+    <string name="settings_export_logs_not_found">エクスポートするログが見つかりません</string>
 </resources>

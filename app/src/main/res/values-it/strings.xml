@@ -618,4 +618,18 @@
     <string name="settings_root_proxy_desc">Reindirizza il DNS tramite iptables invece della VPN (richiede il Root)</string>
     <string name="root_not_available">Accesso Root non disponibile. Concedi l\'autorizzazione nel tuo gestore root (es. Magisk/KernelSU).</string>
     <string name="root_proxy_notification_text">Modalità Proxy Root attiva — Traffico DNS reindirizzato tramite iptables</string>
+    <string name="onboarding_crash_report_title">Aiuta a migliorare BlockAds</string>
+    <string name="onboarding_crash_report_desc">BlockAds mette la privacy al primo posto. Vorremmo il tuo permesso per raccogliere segnalazioni di arresti anomali in modo anonimo, per aiutarci a risolvere tempestivamente i bug.\n\nQuesto è strettamente FACOLTATIVO, NON contiene informazioni di identificazione personale (PII) e può essere disabilitato in qualsiasi momento nelle Impostazioni.</string>
+    <string name="onboarding_crash_report_btn_yes">Sì, aiuta a migliorare BlockAds</string>
+    <string name="onboarding_crash_report_btn_no">No, grazie</string>
+    <string name="settings_privacy_diagnostics_title">Privacy &amp; Diagnostica</string>
+    <string name="settings_privacy_diagnostics_desc">Gestisci le segnalazioni di arresti anomali e i log locali</string>
+
+    <string name="settings_crash_reporting_title">Segnalazione anonima arresti anomali</string>
+    <string name="settings_crash_reporting_subtitle">Invia automaticamente i log degli errori per aiutarci a risolvere i problemi. Non sono inclusi dati personali.</string>
+
+    <string name="settings_export_logs_title">Esporta log locali</string>
+    <string name="settings_export_logs_subtitle">Condividi i log di debug offline direttamente tramite Email, Telegram, ecc.</string>
+    <string name="settings_export_logs_chooser_title">Condividi log</string>
+    <string name="settings_export_logs_not_found">Nessun log trovato da esportare</string>
 </resources>

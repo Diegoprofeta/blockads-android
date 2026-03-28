@@ -1,7 +1,9 @@
 package app.pwhs.blockads.ui.settings
 
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.pwhs.blockads.R
@@ -28,7 +30,9 @@ import app.pwhs.blockads.utils.CustomRuleParser
 import app.pwhs.blockads.worker.DailySummaryScheduler
 import app.pwhs.blockads.worker.FilterUpdateScheduler
 import app.pwhs.blockads.service.IptablesManager
+import app.pwhs.blockads.service.RootProxyService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -169,21 +173,21 @@ class SettingsViewModel(
 
         val isRoot = mode == AppPreferences.ROUTING_MODE_ROOT
 
-        if (AdBlockVpnService.isRunning || app.pwhs.blockads.service.RootProxyService.isRunning) {
+        if (AdBlockVpnService.isRunning || RootProxyService.isRunning) {
             if (isRoot) {
-                val stopIntent = android.content.Intent(context, AdBlockVpnService::class.java).apply {
+                val stopIntent = Intent(context, AdBlockVpnService::class.java).apply {
                     action = AdBlockVpnService.ACTION_STOP
                 }
                 context.startService(stopIntent)
-                kotlinx.coroutines.delay(800)
-                app.pwhs.blockads.service.RootProxyService.start(context)
+                delay(800)
+                RootProxyService.start(context)
             } else {
-                app.pwhs.blockads.service.RootProxyService.stop(context)
-                kotlinx.coroutines.delay(800)
-                val startIntent = android.content.Intent(context, AdBlockVpnService::class.java).apply {
+                RootProxyService.stop(context)
+                delay(800)
+                val startIntent = Intent(context, AdBlockVpnService::class.java).apply {
                     action = AdBlockVpnService.ACTION_START
                 }
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(startIntent)
                 } else {
                     context.startService(startIntent)

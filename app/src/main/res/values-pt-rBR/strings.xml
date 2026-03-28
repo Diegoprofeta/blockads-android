@@ -591,4 +591,18 @@
     <string name="settings_root_proxy_desc">Redirecionar DNS via iptables em vez de VPN (requer Root)</string>
     <string name="root_not_available">Acesso Root não disponível. Por favor, conceda a permissão no seu gerenciador root (ex: Magisk/KernelSU).</string>
     <string name="root_proxy_notification_text">Modo Proxy Root ativo — tráfego DNS redirecionado via iptables</string>
+    <string name="onboarding_crash_report_title">Ajude a melhorar o BlockAds</string>
+    <string name="onboarding_crash_report_desc">O BlockAds prioriza a privacidade. Gostaríamos da sua permissão para coletar relatórios anônimos de falhas e nos ajudar a corrigir bugs rapidamente.\n\nIsto é estritamente OPCIONAL, NÃO contém informações de identificação pessoal (PII) e pode ser desativado a qualquer momento nas Configurações.</string>
+    <string name="onboarding_crash_report_btn_yes">Sim, ajudar a melhorar</string>
+    <string name="onboarding_crash_report_btn_no">Não, obrigado</string>
+    <string name="settings_privacy_diagnostics_title">Privacidade &amp; Diagnóstico</string>
+    <string name="settings_privacy_diagnostics_desc">Gerenciar relatórios de falhas e logs locais</string>
+
+    <string name="settings_crash_reporting_title">Relatórios anônimos de falhas</string>
+    <string name="settings_crash_reporting_subtitle">Enviar automaticamente logs de erros para nos ajudar a corrigir problemas. Nenhum dado pessoal é incluído.</string>
+
+    <string name="settings_export_logs_title">Exportar Logs Locais</string>
+    <string name="settings_export_logs_subtitle">Compartilhe logs de depuração offline diretamente via Email, Telegram, etc.</string>
+    <string name="settings_export_logs_chooser_title">Compartilhar Logs</string>
+    <string name="settings_export_logs_not_found">Nenhum log encontrado para exportar</string>
 </resources>

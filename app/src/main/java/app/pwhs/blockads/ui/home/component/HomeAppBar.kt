@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +39,6 @@ import app.pwhs.blockads.ui.theme.TextSecondary
 @Composable
 fun HomeAppBar(
     modifier: Modifier = Modifier,
-    context: Context,
     isLoading: Boolean,
     filterLoadFailed: Boolean,
     viewModel: HomeViewModel,
@@ -47,9 +47,10 @@ fun HomeAppBar(
 ) {
     val telegramUri = stringResource(R.string.telegram_link).toUri()
     val testBlockUri = stringResource(R.string.test_block_ads).toUri()
+    val context = LocalContext.current
 
     TopAppBar(
-
+        modifier = modifier,
         navigationIcon = {
            Row {
                IconButton(onClick = {

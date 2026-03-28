@@ -592,4 +592,18 @@
     <string name="settings_root_proxy_desc">Переспрямування DNS через iptables замість VPN (потрібні Root-права)</string>
     <string name="root_not_available">Root-доступ недоступний. Будь ласка, надайте дозвіл у вашому root-менеджері (наприклад, Magisk/KernelSU).</string>
     <string name="root_proxy_notification_text">Режим Root Proxy активний — DNS-трафік переспрямовано через iptables</string>
+    <string name="onboarding_crash_report_title">Допоможіть покращити BlockAds</string>
+    <string name="onboarding_crash_report_desc">BlockAds ставить конфіденційність на перше місце. Ми просимо вашого дозволу на збір анонімних звітів про помилки, щоб ми могли швидко їх виправляти.\n\nЦе строго ДОБРОВІЛЬНО, НЕ містить персональних даних (PII) і може бути вимкнено в будь-який час у Налаштуваннях.</string>
+    <string name="onboarding_crash_report_btn_yes">Так, допомогти покращити BlockAds</string>
+    <string name="onboarding_crash_report_btn_no">Ні, дякую</string>
+    <string name="settings_privacy_diagnostics_title">Конфіденційність &amp; Діагностика</string>
+    <string name="settings_privacy_diagnostics_desc">Керування звітами про збої та локальними журналами</string>
+
+    <string name="settings_crash_reporting_title">Анонімні звіти про помилки</string>
+    <string name="settings_crash_reporting_subtitle">Автоматично надсилати журнали помилок, щоб допомогти нам у їх усуненні. Особисті дані не збираються.</string>
+
+    <string name="settings_export_logs_title">Експорт локальних журналів</string>
+    <string name="settings_export_logs_subtitle">Поділіться офлайн-журналами налагодження безпосередньо через Email, Telegram тощо.</string>
+    <string name="settings_export_logs_chooser_title">Поділитися журналами</string>
+    <string name="settings_export_logs_not_found">Журнали для експорту не знайдено</string>
 </resources>

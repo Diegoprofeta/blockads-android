@@ -21,7 +21,7 @@ class OnboardingViewModel(
     private val _selectedProtectionLevel = MutableStateFlow(ProtectionLevel.STANDARD)
     val selectedProtectionLevel: StateFlow<ProtectionLevel> = _selectedProtectionLevel.asStateFlow()
 
-    private val _selectedDnsProvider = MutableStateFlow(DnsProviders.QUAD9)
+    private val _selectedDnsProvider = MutableStateFlow(DnsProviders.SYSTEM)
     val selectedDnsProvider: StateFlow<DnsProvider> = _selectedDnsProvider.asStateFlow()
 
     fun selectProtectionLevel(level: ProtectionLevel) {

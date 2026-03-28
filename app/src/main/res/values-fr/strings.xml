@@ -634,4 +634,18 @@
     <string name="settings_root_proxy_desc">Rediriger le DNS via iptables au lieu du VPN (nécessite le Root)</string>
     <string name="root_not_available">Accès Root non disponible. Veuillez accorder la permission dans votre gestionnaire root (ex. Magisk/KernelSU).</string>
     <string name="root_proxy_notification_text">Mode Proxy Root actif — trafic DNS redirigé via iptables</string>
+    <string name="onboarding_crash_report_title">Aidez à améliorer BlockAds</string>
+    <string name="onboarding_crash_report_desc">BlockAds respecte votre vie privée. Nous souhaitons obtenir votre autorisation pour collecter des rapports de plantage anonymes afin de nous aider à corriger les bugs rapidement.\n\nCeci est strictement FACULTATIF, ne contient AUCUNE information personnelle identifiable (PII), et peut être désactivé à tout moment dans les Paramètres.</string>
+    <string name="onboarding_crash_report_btn_yes">Oui, aider à améliorer BlockAds</string>
+    <string name="onboarding_crash_report_btn_no">Non, merci</string>
+    <string name="settings_privacy_diagnostics_title">Confidentialité &amp; Diagnostics</string>
+    <string name="settings_privacy_diagnostics_desc">Gérer les rapports de plantage et les journaux locaux</string>
+
+    <string name="settings_crash_reporting_title">Rapports de plantage anonymes</string>
+    <string name="settings_crash_reporting_subtitle">Envoyer automatiquement les journaux d\'erreurs pour nous aider à résoudre les problèmes. Aucune donnée personnelle n\'est incluse.</string>
+
+    <string name="settings_export_logs_title">Exporter les journaux locaux</string>
+    <string name="settings_export_logs_subtitle">Partagez les journaux de débogage hors ligne directement via Email, Telegram, etc.</string>
+    <string name="settings_export_logs_chooser_title">Partager les journaux</string>
+    <string name="settings_export_logs_not_found">Aucun journal à exporter trouvé</string>
 </resources>
