@@ -17,13 +17,13 @@ import (
 // engine. It mirrors the Engine's own blocking logic (Bloom → Trie → Custom
 // Rules) so the proxy can reject ad domains at the TCP level before ever
 // dialling the upstream server.
-type AdBlockChecker interface {
+type adBlockChecker interface {
 	// IsDomainBlocked returns true if the given hostname (no port) should be
 	// blocked according to the ad/security filter lists + custom rules.
 	IsDomainBlocked(host string) bool
 
-	// LookupIP resolves a domain to an IP address using the internal resolver.
-	LookupIP(host string) (net.IP, error)
+	// lookupIP resolves a domain to an IP address using the internal resolver.
+	lookupIP(host string) (net.IP, error)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -58,7 +58,7 @@ type MitmProxy struct {
 	listener net.Listener
 	certMgr  *CertManager
 	filter   *MitmFilter
-	blocker  AdBlockChecker // nil = no ad-blocking at proxy level
+	blocker  adBlockChecker // nil = no ad-blocking at proxy level
 	running  bool
 	wg       sync.WaitGroup
 
@@ -93,9 +93,9 @@ func (p *MitmProxy) GetFilter() *MitmFilter {
 	return p.filter
 }
 
-// SetAdBlockChecker injects the ad-block engine so the proxy can reject
-// blocked domains at the TCP level (before dialling upstream).
-func (p *MitmProxy) SetAdBlockChecker(checker AdBlockChecker) {
+// setAdBlockChecker injects the ad-block engine so the proxy can reject
+// domains dynamically.
+func (p *MitmProxy) setAdBlockChecker(checker adBlockChecker) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.blocker = checker
@@ -553,9 +553,9 @@ func (p *MitmProxy) resolveDialAddr(hostport string) string {
 		return hostport
 	}
 
-	ip, err := p.blocker.LookupIP(host)
-	if err == nil && ip != nil {
-		return net.JoinHostPort(ip.String(), port)
+	resolvedIP, err := p.blocker.lookupIP(host)
+	if err == nil && resolvedIP != nil {
+		return net.JoinHostPort(resolvedIP.String(), port)
 	}
 
 	return hostport

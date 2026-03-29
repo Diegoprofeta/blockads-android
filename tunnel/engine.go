@@ -653,10 +653,10 @@ func (e *Engine) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	e.standaloneForward(w, r, appName, startTime)
 }
 
-// LookupIP resolves a domain to an IP address using the Engine's internal resolver.
+// lookupIP resolves a domain to an IP address using the Engine's internal resolver.
 // It is used by the MITM proxy to bypass Android's problematic system DNS resolver
 // when the app itself is excluded from the VPN.
-func (e *Engine) LookupIP(domain string) (net.IP, error) {
+func (e *Engine) lookupIP(domain string) (net.IP, error) {
 	e.mu.Lock()
 	resolver := e.resolver
 	primary := e.primaryDNS
@@ -897,7 +897,7 @@ func (e *Engine) StartMitmProxy(addr string, certDir string) string {
 		return ""
 	}
 	// ── Wire ad-block engine into proxy for Gate 1 blocking ──
-	proxy.SetAdBlockChecker(e)
+	proxy.setAdBlockChecker(e)
 	e.mitmProxy = proxy
 	e.mu.Unlock()
 
