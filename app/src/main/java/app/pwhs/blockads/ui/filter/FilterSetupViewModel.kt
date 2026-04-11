@@ -77,7 +77,7 @@ class FilterSetupViewModel(
         }
     }
 
-    fun addFilterList(name: String, url: String) {
+    fun addFilterList(name: String, url: String, buildLocally: Boolean = false) {
         viewModelScope.launch {
             val trimmedUrl = url.trim()
 
@@ -88,9 +88,12 @@ class FilterSetupViewModel(
                 return@launch
             }
 
-            // Use backend compiler API to build optimized binary files
             _isAddingCustomFilter.value = true
-            val result = customFilterManager.addCustomFilter(trimmedUrl, name.trim())
+            val result = if (buildLocally) {
+                customFilterManager.addCustomFilterLocally(trimmedUrl, name.trim())
+            } else {
+                customFilterManager.addCustomFilter(trimmedUrl, name.trim())
+            }
             _isAddingCustomFilter.value = false
 
             result.fold(

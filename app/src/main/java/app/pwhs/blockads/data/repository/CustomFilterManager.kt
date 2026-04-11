@@ -343,7 +343,7 @@ class CustomFilterManager(
      * Downloads a filter list and compiles .trie/.bloom locally using the Go compiler.
      * Used as fallback when the backend API is unreachable.
      */
-    private suspend fun addCustomFilterLocally(url: String, displayName: String?): Result<FilterList> {
+    suspend fun addCustomFilterLocally(url: String, displayName: String?): Result<FilterList> = withContext(Dispatchers.IO) {
         val trimmedUrl = url.trim()
         val remoteFilterDir = File(context.filesDir, REMOTE_FILTERS_DIR).apply { mkdirs() }
         val tempFile = File(context.cacheDir, "filter_download_${System.currentTimeMillis()}.txt")
@@ -401,10 +401,10 @@ class CustomFilterManager(
             )
             filterListDao.update(updatedEntity)
 
-            return Result.success(updatedEntity)
+            Result.success(updatedEntity)
         } catch (e: Exception) {
             Timber.e(e, "Local compile failed")
-            return Result.failure(CustomFilterException("Local compile failed: ${e.message}", e))
+            Result.failure(CustomFilterException("Local compile failed: ${e.message}", e))
         } finally {
             tempFile.delete()
         }

@@ -3,11 +3,15 @@ package app.pwhs.blockads.ui.filter.component
 import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -26,13 +30,14 @@ import app.pwhs.blockads.R
 @Composable
 fun AddFilterDialog(
     onDismiss: () -> Unit,
-    onAdd: (name: String, url: String) -> Unit,
+    onAdd: (name: String, url: String, buildLocally: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     existingUrls: List<String> = emptyList(),
     isValidating: Boolean = false
 ) {
     var name by remember { mutableStateOf("") }
     var url by remember { mutableStateOf("") }
+    var buildLocally by remember { mutableStateOf(false) }
 
     val urlTrimmed = url.trim()
     val nameTrimmed = name.trim()
@@ -79,11 +84,25 @@ fun AddFilterDialog(
                     },
                     enabled = !isValidating
                 )
+                Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = buildLocally,
+                        onCheckedChange = { buildLocally = it },
+                        enabled = !isValidating
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(R.string.filter_build_locally),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         },
         confirmButton = {
             Button(
-                onClick = { if (isValid && !isValidating) onAdd(nameTrimmed, urlTrimmed) },
+                onClick = { if (isValid && !isValidating) onAdd(nameTrimmed, urlTrimmed, buildLocally) },
                 enabled = isValid && !isValidating
             ) {
                 if (isValidating) {

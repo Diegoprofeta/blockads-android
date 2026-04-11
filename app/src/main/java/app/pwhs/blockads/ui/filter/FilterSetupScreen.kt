@@ -397,9 +397,9 @@ fun FilterSetupScreen(
         if (showAddDialog) {
             AddFilterDialog(
                 onDismiss = { if (!isAddingCustomFilter) showAddDialog = false },
-                onAdd = { name, url ->
+                onAdd = { name, url, buildLocally ->
                     if (!isAddingCustomFilter) {
-                        viewModel.addFilterList(name, url)
+                        viewModel.addFilterList(name, url, buildLocally)
                     }
                 },
                 existingUrls = filterLists.map { it.url },
