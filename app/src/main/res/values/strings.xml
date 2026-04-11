@@ -582,7 +582,6 @@
     <string name="copied_url">Copied URL</string>
     <string name="filter_error_invalid_url">Please enter a valid URL (http:// or https://)</string>
     <string name="filter_error_duplicate_url">This filter list already exists</string>
-    <string name="filter_build_locally">Build locally (no server)</string>
     <string name="filter_error_invalid_content">URL does not contain a valid filter list</string>
     <string name="filter_chip_all">All</string>
     <string name="filter_chip_enabled">Enabled</string>
@@ -621,13 +620,6 @@
     <string name="wireguard_save_activate">Save &amp; Activate</string>
     <string name="wireguard_clear">Clear WireGuard</string>
     <string name="wireguard_active_label">WireGuard Active — Restart VPN to apply</string>
-
-    <string name="split_dns_title">Split DNS Zones</string>
-    <string name="split_dns_description">Comma-separated domain zones to resolve via WireGuard DNS instead of upstream (e.g., internal,local,lan)</string>
-
-    <string name="exclude_lan_title">Exclude LAN Traffic</string>
-    <string name="exclude_lan_description">Allow access to local network devices (printers, NAS, local servers) while WireGuard is active</string>
-
     <!-- HTTPS Filtering -->
     <string name="https_filtering_title">HTTPS Filtering</string>
     <string name="https_filtering_toggle_label">HTTPS Cosmetic Filter</string>
@@ -682,8 +674,6 @@
     <string name="settings_privacy_diagnostics_title">Privacy &amp; Diagnostics</string>
     <string name="settings_privacy_diagnostics_desc">Manage crash reporting and local logs</string>
 
-    <string name="settings_hide_from_recents_title">Hide from Recent Apps</string>
-    <string name="settings_hide_from_recents_subtitle">Hide BlockAds from the recent apps screen</string>
 
     <string name="settings_crash_reporting_title">Anonymous Crash Reporting</string>
     <string name="settings_crash_reporting_subtitle">Automatically send error logs to help us fix issues. No personal data is included.</string>
@@ -694,8 +684,17 @@
     <string name="settings_export_logs_not_found">No logs found to export</string>
     <string name="custom_color_title">Custom Color</string>
     <string name="home_disconnecting_desc">Stopping VPN connection…</string>
-    <string name="home_disconnecting_desc_root">Stopping Root Proxy…</string>
     <string name="status_disconnecting">Disconnecting</string>
     <string name="vpn_notification_stopping">BlockAds is stopping</string>
     <string name="vpn_notification_stopping_text">Closing VPN tunnel…</string>
+
+    <string name="split_dns_title">Split DNS Zones</string>
+    <string name="split_dns_description">Comma-separated domain zones to resolve via WireGuard DNS instead of upstream (e.g., internal,local,lan)</string>
+    <string name="filter_build_locally">Build locally (no server)</string>
+    <string name="exclude_lan_title">Exclude LAN Traffic</string>
+    <string name="exclude_lan_description">Allow access to local network devices (printers, NAS, local servers) while WireGuard is active</string>
+    <string name="settings_hide_from_recents_title">Hide from Recent Apps</string>
+    <string name="settings_hide_from_recents_subtitle">Hide BlockAds from the recent apps screen</string>
+    <string name="home_disconnecting_desc_root">Stopping Root Proxy…</string>
+
 </resources>
