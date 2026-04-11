@@ -7,6 +7,9 @@ import app.pwhs.blockads.data.remote.api.CustomFilterApi
 import app.pwhs.blockads.data.remote.api.CustomFilterException
 import app.pwhs.blockads.utils.ZipUtils
 import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -149,11 +152,11 @@ class CustomFilterManager(
 
             Result.success(updatedEntity)
         } catch (e: CustomFilterException) {
-            Timber.e(e, "Custom filter API error")
-            Result.failure(e)
+            Timber.e(e, "Custom filter API error, trying local compile")
+            addCustomFilterLocally(trimmedUrl, displayName)
         } catch (e: Exception) {
-            Timber.e(e, "Failed to add custom filter")
-            Result.failure(CustomFilterException("Failed to add filter: ${e.message}", e))
+            Timber.e(e, "Failed to add custom filter via API, trying local compile")
+            addCustomFilterLocally(trimmedUrl, displayName)
         }
     }
 
@@ -333,6 +336,79 @@ class CustomFilterManager(
                 Result.failure(CustomFilterException("Update failed: ${e.message}", e))
             }
         }
+
+    // ── Local Compile (fallback when backend is unreachable) ──────────
+
+    /**
+     * Downloads a filter list and compiles .trie/.bloom locally using the Go compiler.
+     * Used as fallback when the backend API is unreachable.
+     */
+    private suspend fun addCustomFilterLocally(url: String, displayName: String?): Result<FilterList> {
+        val trimmedUrl = url.trim()
+        val remoteFilterDir = File(context.filesDir, REMOTE_FILTERS_DIR).apply { mkdirs() }
+        val tempFile = File(context.cacheDir, "filter_download_${System.currentTimeMillis()}.txt")
+
+        try {
+            // Download filter list to temp file
+            Timber.d("Local compile: downloading $trimmedUrl")
+            val response = client.get(trimmedUrl)
+            val channel = response.bodyAsChannel()
+            tempFile.outputStream().use { output ->
+                val buffer = ByteArray(8 * 1024)
+                while (!channel.isClosedForRead) {
+                    val read = channel.readAvailable(buffer)
+                    if (read > 0) output.write(buffer, 0, read)
+                }
+            }
+
+            val finalName = displayName?.takeIf { it.isNotBlank() } ?: deriveFilterName(trimmedUrl)
+
+            // Insert entity to get auto-generated ID
+            val filterEntity = FilterList(
+                name = finalName,
+                url = trimmedUrl,
+                description = "Custom filter: $finalName",
+                isEnabled = true,
+                isBuiltIn = false,
+                category = FilterList.CATEGORY_AD,
+                ruleCount = 0,
+                domainCount = 0,
+                bloomUrl = "",
+                trieUrl = "",
+                cssUrl = "",
+                originalUrl = trimmedUrl,
+                lastUpdated = System.currentTimeMillis()
+            )
+            val insertedId = filterListDao.insert(filterEntity)
+
+            // Compile .trie and .bloom using Go
+            val triePath = File(remoteFilterDir, "$insertedId.trie").absolutePath
+            val bloomPath = File(remoteFilterDir, "$insertedId.bloom").absolutePath
+
+            val ruleCount = tunnel.Tunnel.compileFilterList(
+                tempFile.absolutePath, triePath, bloomPath
+            ).toInt()
+
+            Timber.d("Local compile: $ruleCount rules → $triePath, $bloomPath")
+
+            // Update entity
+            val updatedEntity = filterEntity.copy(
+                id = insertedId,
+                ruleCount = ruleCount,
+                domainCount = ruleCount,
+                bloomUrl = "local://$insertedId.bloom",
+                trieUrl = "local://$insertedId.trie",
+            )
+            filterListDao.update(updatedEntity)
+
+            return Result.success(updatedEntity)
+        } catch (e: Exception) {
+            Timber.e(e, "Local compile failed")
+            return Result.failure(CustomFilterException("Local compile failed: ${e.message}", e))
+        } finally {
+            tempFile.delete()
+        }
+    }
 
     // ── Helpers ────────────────────────────────────────────────────────
 
