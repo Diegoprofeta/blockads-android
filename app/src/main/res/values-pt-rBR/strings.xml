@@ -619,4 +619,9 @@
     <string name="settings_hide_from_recents_subtitle">Ocultar o BlockAds da tela de aplicativos recentes</string>
     <string name="home_connecting_desc_root">Estabelecendo Root Proxy…</string>
     <string name="home_disconnecting_desc_root">Parando Root Proxy…</string>
+    <string name="filter_build_mode">Modo de compilação</string>
+    <string name="filter_build_mode_local">Compilado no dispositivo</string>
+    <string name="filter_build_mode_server">Compilado via servidor</string>
+    <string name="filter_switch_to_server">Mudar para servidor</string>
+    <string name="filter_switch_to_local">Mudar para local</string>
 </resources>

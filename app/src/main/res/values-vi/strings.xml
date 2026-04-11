@@ -647,4 +647,9 @@
     <string name="settings_hide_from_recents_subtitle">Ẩn BlockAds khỏi màn hình ứng dụng gần đây</string>
     <string name="home_connecting_desc_root">Đang thiết lập Root Proxy…</string>
     <string name="home_disconnecting_desc_root">Đang dừng Root Proxy…</string>
+    <string name="filter_build_mode">Chế độ xây dựng</string>
+    <string name="filter_build_mode_local">Xây dựng trên thiết bị</string>
+    <string name="filter_build_mode_server">Xây dựng qua máy chủ</string>
+    <string name="filter_switch_to_server">Chuyển sang máy chủ</string>
+    <string name="filter_switch_to_local">Chuyển sang cục bộ</string>
 </resources>

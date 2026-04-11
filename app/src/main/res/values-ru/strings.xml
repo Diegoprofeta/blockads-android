@@ -646,4 +646,9 @@
     <string name="settings_hide_from_recents_subtitle">Скрыть BlockAds с экрана недавних приложений</string>
     <string name="home_connecting_desc_root">Установка Root Proxy…</string>
     <string name="home_disconnecting_desc_root">Остановка Root Proxy…</string>
+    <string name="filter_build_mode">Режим сборки</string>
+    <string name="filter_build_mode_local">Собрано на устройстве</string>
+    <string name="filter_build_mode_server">Собрано через сервер</string>
+    <string name="filter_switch_to_server">Переключить на сервер</string>
+    <string name="filter_switch_to_local">Переключить на локальный</string>
 </resources>

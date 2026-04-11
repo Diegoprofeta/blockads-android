@@ -619,4 +619,9 @@
     <string name="settings_hide_from_recents_subtitle">Sembunyikan BlockAds dari layar aplikasi terbaru</string>
     <string name="home_connecting_desc_root">Membangun Root Proxy…</string>
     <string name="home_disconnecting_desc_root">Menghentikan Root Proxy…</string>
+    <string name="filter_build_mode">Mode Pembuatan</string>
+    <string name="filter_build_mode_local">Dibangun di perangkat</string>
+    <string name="filter_build_mode_server">Dibangun melalui server</string>
+    <string name="filter_switch_to_server">Beralih ke Server</string>
+    <string name="filter_switch_to_local">Beralih ke Lokal</string>
 </resources>

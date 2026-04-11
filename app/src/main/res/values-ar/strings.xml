@@ -612,4 +612,9 @@
     <string name="settings_hide_from_recents_subtitle">إخفاء BlockAds من شاشة التطبيقات الأخيرة</string>
     <string name="home_connecting_desc_root">جاري إنشاء Root Proxy…</string>
     <string name="home_disconnecting_desc_root">جاري إيقاف Root Proxy…</string>
+    <string name="filter_build_mode">وضع البناء</string>
+    <string name="filter_build_mode_local">تم البناء على الجهاز</string>
+    <string name="filter_build_mode_server">تم البناء عبر الخادم</string>
+    <string name="filter_switch_to_server">التبديل إلى الخادم</string>
+    <string name="filter_switch_to_local">التبديل إلى المحلي</string>
 </resources>

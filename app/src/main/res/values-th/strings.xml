@@ -599,4 +599,9 @@
     <string name="settings_hide_from_recents_subtitle">ซ่อน BlockAds จากหน้าจอแอปล่าสุด</string>
     <string name="home_connecting_desc_root">กำลังสร้าง Root Proxy…</string>
     <string name="home_disconnecting_desc_root">กำลังหยุด Root Proxy…</string>
+    <string name="filter_build_mode">โหมดการสร้าง</string>
+    <string name="filter_build_mode_local">สร้างบนอุปกรณ์</string>
+    <string name="filter_build_mode_server">สร้างผ่านเซิร์ฟเวอร์</string>
+    <string name="filter_switch_to_server">เปลี่ยนเป็นเซิร์ฟเวอร์</string>
+    <string name="filter_switch_to_local">เปลี่ยนเป็นในเครื่อง</string>
 </resources>

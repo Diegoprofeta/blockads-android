@@ -667,4 +667,9 @@ Desteklenen formatlar:
     <string name="settings_hide_from_recents_subtitle">BlockAds\'ı son uygulamalar ekranından gizle</string>
     <string name="home_connecting_desc_root">Root Proxy kuruluyor…</string>
     <string name="home_disconnecting_desc_root">Root Proxy durduruluyor…</string>
+    <string name="filter_build_mode">Derleme Modu</string>
+    <string name="filter_build_mode_local">Cihazda derlendi</string>
+    <string name="filter_build_mode_server">Sunucu üzerinden derlendi</string>
+    <string name="filter_switch_to_server">Sunucuya Geç</string>
+    <string name="filter_switch_to_local">Yerele Geç</string>
 </resources>

@@ -620,4 +620,9 @@
     <string name="settings_hide_from_recents_subtitle">Сховати BlockAds з екрана останніх додатків</string>
     <string name="home_connecting_desc_root">Встановлення Root Proxy…</string>
     <string name="home_disconnecting_desc_root">Зупинка Root Proxy…</string>
+    <string name="filter_build_mode">Режим збірки</string>
+    <string name="filter_build_mode_local">Зібрано на пристрої</string>
+    <string name="filter_build_mode_server">Зібрано через сервер</string>
+    <string name="filter_switch_to_server">Перемкнути на сервер</string>
+    <string name="filter_switch_to_local">Перемкнути на локальний</string>
 </resources>

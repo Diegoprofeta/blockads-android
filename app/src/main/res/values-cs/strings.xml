@@ -622,4 +622,9 @@
     <string name="settings_hide_from_recents_subtitle">Skrýt BlockAds z obrazovky posledních aplikací</string>
     <string name="home_connecting_desc_root">Navazování Root Proxy…</string>
     <string name="home_disconnecting_desc_root">Zastavování Root Proxy…</string>
+    <string name="filter_build_mode">Režim sestavení</string>
+    <string name="filter_build_mode_local">Sestaveno na zařízení</string>
+    <string name="filter_build_mode_server">Sestaveno přes server</string>
+    <string name="filter_switch_to_server">Přepnout na server</string>
+    <string name="filter_switch_to_local">Přepnout na lokální</string>
 </resources>

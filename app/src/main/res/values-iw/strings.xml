@@ -626,4 +626,9 @@
     <string name="settings_hide_from_recents_subtitle">הסתר את BlockAds ממסך האפליקציות האחרונות</string>
     <string name="home_connecting_desc_root">מתחבר ל-Root Proxy…</string>
     <string name="home_disconnecting_desc_root">עוצר את Root Proxy…</string>
+    <string name="filter_build_mode">מצב בנייה</string>
+    <string name="filter_build_mode_local">נבנה על המכשיר</string>
+    <string name="filter_build_mode_server">נבנה דרך השרת</string>
+    <string name="filter_switch_to_server">עבור לשרת</string>
+    <string name="filter_switch_to_local">עבור למקומי</string>
 </resources>
