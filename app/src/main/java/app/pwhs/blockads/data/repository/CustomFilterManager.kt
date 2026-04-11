@@ -388,6 +388,53 @@ class CustomFilterManager(
         }
     }
 
+    /**
+     * Re-compiles an existing custom filter locally (in-place, same DB ID).
+     * Used when switching from server to local build mode.
+     */
+    suspend fun recompileLocally(filter: FilterList): Result<FilterList> = withContext(Dispatchers.IO) {
+        val url = filter.originalUrl.ifEmpty { filter.url }
+        val remoteFilterDir = File(context.filesDir, REMOTE_FILTERS_DIR).apply { mkdirs() }
+        val tempFile = File(context.cacheDir, "filter_recompile_${System.currentTimeMillis()}.txt")
+
+        try {
+            Timber.d("Recompile locally: downloading $url")
+            val response = client.get(url)
+            val channel = response.bodyAsChannel()
+            tempFile.outputStream().use { output ->
+                val buffer = ByteArray(8 * 1024)
+                while (!channel.isClosedForRead) {
+                    val read = channel.readAvailable(buffer)
+                    if (read > 0) output.write(buffer, 0, read)
+                }
+            }
+
+            val triePath = File(remoteFilterDir, "${filter.id}.trie").absolutePath
+            val bloomPath = File(remoteFilterDir, "${filter.id}.bloom").absolutePath
+
+            val ruleCount = tunnel.Tunnel.compileFilterList(
+                tempFile.absolutePath, triePath, bloomPath
+            ).toInt()
+
+            val updated = filter.copy(
+                ruleCount = ruleCount,
+                domainCount = ruleCount,
+                bloomUrl = "local://${filter.id}.bloom",
+                trieUrl = "local://${filter.id}.trie",
+                lastUpdated = System.currentTimeMillis()
+            )
+            filterListDao.update(updated)
+
+            Timber.d("Recompile locally: ${filter.name}, rules=$ruleCount")
+            Result.success(updated)
+        } catch (e: Exception) {
+            Timber.e(e, "Recompile locally failed: ${filter.name}")
+            Result.failure(CustomFilterException("Local recompile failed: ${e.message}", e))
+        } finally {
+            tempFile.delete()
+        }
+    }
+
     // ── Local Compile (fallback when backend is unreachable) ──────────
 
     /**

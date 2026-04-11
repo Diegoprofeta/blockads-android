@@ -128,20 +128,15 @@ class FilterDetailViewModel(
 
             _isUpdating.value = true
             val isCurrentlyLocal = f.trieUrl.startsWith("local://")
-            val url = f.originalUrl.ifEmpty { f.url }
 
             val result = if (isCurrentlyLocal) {
                 // Switch to server: re-compile via backend API
                 customFilterManager.updateCustomFilter(
-                    f.copy(trieUrl = "", bloomUrl = "")  // clear local:// so it uses API
+                    f.copy(trieUrl = "", bloomUrl = "")
                 )
             } else {
-                // Switch to local: re-compile on-device
-                customFilterManager.addCustomFilterLocally(url, f.name).map { updated ->
-                    // Delete old entry, keep new one
-                    filterListDao.delete(f)
-                    updated
-                }
+                // Switch to local: re-compile on-device, update in-place
+                customFilterManager.recompileLocally(f)
             }
 
             _isUpdating.value = false
