@@ -15,7 +15,8 @@ import timber.log.Timber
 class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED &&
+            intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
 
         val pendingResult = goAsync()
         val prefs = AppPreferences(context)
@@ -28,9 +29,11 @@ class BootReceiver : BroadcastReceiver() {
 
                 // Root Mode: iptables rules are volatile (cleared on reboot).
                 // Re-apply rules by starting RootProxyService.
+                // Also restarts after app update (MY_PACKAGE_REPLACED).
                 if (autoReconnect && wasEnabled) {
+                    val trigger = if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) "app update" else "boot"
                     if (routingMode == AppPreferences.ROUTING_MODE_ROOT) {
-                        Timber.d("Auto-starting Root Proxy mode after boot")
+                        Timber.d("Auto-starting Root Proxy mode after $trigger")
                         val serviceIntent = Intent(context, RootProxyService::class.java).apply {
                             action = RootProxyService.ACTION_START
                             putExtra(RootProxyService.EXTRA_STARTED_FROM_BOOT, true)
@@ -41,7 +44,7 @@ class BootReceiver : BroadcastReceiver() {
                             context.startService(serviceIntent)
                         }
                     } else {
-                        Timber.d("Auto-reconnecting VPN after boot")
+                        Timber.d("Auto-reconnecting VPN after $trigger")
                         val serviceIntent = Intent(context, AdBlockVpnService::class.java).apply {
                             action = AdBlockVpnService.ACTION_START
                             putExtra(AdBlockVpnService.EXTRA_STARTED_FROM_BOOT, true)
