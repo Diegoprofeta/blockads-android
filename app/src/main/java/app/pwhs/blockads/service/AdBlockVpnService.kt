@@ -586,14 +586,14 @@ class AdBlockVpnService : VpnService() {
                 b.addRoute("0.0.0.0", 0)
                 b.addRoute("::", 0)
 
-                // DNS servers from WireGuard config
-                for (dnsServer in wgConfig.interfaceConfig.dns) {
-                    try {
-                        b.addDnsServer(dnsServer)
-                    } catch (e: Exception) {
-                        Timber.w(e, "Could not add DNS server: $dnsServer")
-                    }
-                }
+                // Use a fake local DNS address to force Android to send DNS on
+                // port 53 (plain UDP). If we use the real WireGuard DNS here
+                // (e.g., 1.1.1.1), Android may use DoT (port 853) which
+                // bypasses our DNS interceptor entirely — no ad blocking.
+                // The Go engine handles actual DNS resolution via its own resolver.
+                b.addAddress("10.255.255.2", 32)
+                b.addDnsServer("10.255.255.1")
+                b.addRoute("10.255.255.1", 32)
                 b
             } else {
                 // Direct mode — only route DNS traffic
