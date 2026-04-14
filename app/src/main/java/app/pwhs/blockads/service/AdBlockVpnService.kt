@@ -793,6 +793,7 @@ class AdBlockVpnService : VpnService() {
     private fun stopVpn(showStoppedNotification: Boolean = true) {
         _state.value = VpnState.STOPPING
         isReconnecting = false
+        networkSwitchJob?.cancel()
         startTimestamp = 0L
 
         // Show "Stopping…" notification immediately
@@ -1120,7 +1121,7 @@ class AdBlockVpnService : VpnService() {
             }
 
             // Case 2: VPN is not running but should be → reconnect
-            if (autoReconnect && vpnWasEnabled && !isRunning && !isConnecting && !isRestarting) {
+            if (autoReconnect && vpnWasEnabled && !isRunning && !isConnecting && !isRestarting && !isStopping) {
                 Timber.d("Auto-reconnecting VPN after network became available")
                 isReconnecting = true
 
@@ -1141,7 +1142,7 @@ class AdBlockVpnService : VpnService() {
                     delay(delayMs)
                 }
 
-                if (!isRunning && !isConnecting) {
+                if (!isRunning && !isConnecting && !isStopping) {
                     retryManager.reset()
                     startVpn()
                 }
