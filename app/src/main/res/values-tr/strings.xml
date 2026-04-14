@@ -356,6 +356,7 @@ Desteklenen formatlar:
     <string name="app_management_desc">"Uygulama bazında VPN yönlendirmesini yönetin ve istatistikleri görüntüleyin."</string>
     <string name="app_management_search">"Arama uygulamaları…"</string>
     <string name="app_management_loading">"Uygulamalar yükleniyor…"</string>
+    <string name="app_management_refresh">Yenile</string>
     <string name="app_management_sort">"Düzenlemek"</string>
     <string name="app_management_sort_name">"İsime göre sırala"</string>
     <string name="app_management_sort_queries">"Sorgulara göre sırala"</string>

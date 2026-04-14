@@ -341,6 +341,7 @@
     <string name="app_management_desc">Zarządzaj routingiem VPN dla poszczególnych aplikacji i przeglądaj statystyki</string>
     <string name="app_management_search">Szukaj aplikacji…</string>
     <string name="app_management_loading">Wczytywanie aplikacji…</string>
+    <string name="app_management_refresh">Odśwież</string>
     <string name="app_management_sort">Sortuj</string>
     <string name="app_management_sort_name">Sortuj według nazwy</string>
     <string name="app_management_sort_queries">Sortuj według zapytań</string>

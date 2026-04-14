@@ -341,6 +341,7 @@
     <string name="app_management_desc">Kelola perutean VPN per-aplikasi dan lihat statistik</string>
     <string name="app_management_search">Cari aplikasi…</string>
     <string name="app_management_loading">Memuat aplikasi…</string>
+    <string name="app_management_refresh">Segarkan</string>
     <string name="app_management_sort">Urutkan</string>
     <string name="app_management_sort_name">Urutkan berdasarkan Nama</string>
     <string name="app_management_sort_queries">Urutkan berdasarkan Kueri</string>

@@ -334,6 +334,7 @@
     <string name="app_management_desc">Gestisci il routing VPN per singola app e visualizza le statistiche</string>
     <string name="app_management_search">Cerca app…</string>
     <string name="app_management_loading">Caricamento app…</string>
+    <string name="app_management_refresh">Aggiorna</string>
     <string name="app_management_sort">Ordina</string>
     <string name="app_management_sort_name">Ordina per Nome</string>
     <string name="app_management_sort_queries">Ordina per Query</string>

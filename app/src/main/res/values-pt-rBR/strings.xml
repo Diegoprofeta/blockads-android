@@ -341,6 +341,7 @@
     <string name="app_management_desc">Gerencie o roteamento VPN por aplicativo e veja as estatísticas</string>
     <string name="app_management_search">Pesquisar aplicativos…</string>
     <string name="app_management_loading">Carregando aplicativos…</string>
+    <string name="app_management_refresh">Atualizar</string>
     <string name="app_management_sort">Ordenar</string>
     <string name="app_management_sort_name">Ordenar por Nome</string>
     <string name="app_management_sort_queries">Ordenar por Consultas</string>

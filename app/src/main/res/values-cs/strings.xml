@@ -242,6 +242,7 @@
     <string name="app_management_desc">Správa směrování VPN pro aplikace và statistiky</string>
     <string name="app_management_search">Hledat aplikace…</string>
     <string name="app_management_loading">Načítání aplikací…</string>
+    <string name="app_management_refresh">Obnovit</string>
     <string name="app_management_sort">Seřadit</string>
     <string name="app_management_sort_name">Podle názvu</string>
     <string name="app_management_sort_queries">Podle dotazů</string>

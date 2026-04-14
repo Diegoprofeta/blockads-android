@@ -279,6 +279,7 @@
     <string name="app_management_desc">管理各应用的VPN路由并查看统计信息</string>
     <string name="app_management_search">搜索应用…</string>
     <string name="app_management_loading">正在加载应用…</string>
+    <string name="app_management_refresh">刷新</string>
     <string name="app_management_sort">排序</string>
     <string name="app_management_sort_name">按名称排序</string>
     <string name="app_management_sort_queries">按查询数排序</string>

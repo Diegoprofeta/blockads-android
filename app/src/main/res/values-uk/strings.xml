@@ -341,6 +341,7 @@
     <string name="app_management_desc">Керування маршрутизацією VPN для кожного додатка та статистика</string>
     <string name="app_management_search">Пошук додатків…</string>
     <string name="app_management_loading">Завантаження додатків…</string>
+    <string name="app_management_refresh">Оновити</string>
     <string name="app_management_sort">Сортувати</string>
     <string name="app_management_sort_name">За назвою</string>
     <string name="app_management_sort_queries">За запитами</string>

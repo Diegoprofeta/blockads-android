@@ -342,6 +342,7 @@
     <string name="app_management_desc">נהל ניתוב VPN לכל אפליקציה וצפה בסטטיסטיקות</string>
     <string name="app_management_search">חפש אפליקציות…</string>
     <string name="app_management_loading">טוען אפליקציות…</string>
+    <string name="app_management_refresh">רענון</string>
     <string name="app_management_sort">מיון</string>
     <string name="app_management_sort_name">מיין לפי שם</string>
     <string name="app_management_sort_queries">מיין לפי שאילתות</string>

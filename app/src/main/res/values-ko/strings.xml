@@ -279,6 +279,7 @@
     <string name="app_management_desc">앱별 VPN 라우팅 관리 및 통계 보기</string>
     <string name="app_management_search">앱 검색…</string>
     <string name="app_management_loading">앱 로딩 중…</string>
+    <string name="app_management_refresh">새로고침</string>
     <string name="app_management_sort">정렬</string>
     <string name="app_management_sort_name">이름순 정렬</string>
     <string name="app_management_sort_queries">쿼리순 정렬</string>

@@ -287,6 +287,7 @@
     <string name="app_management_desc">จัดการการกำหนดเส้นทาง VPN ของแต่ละแอปและดูสถิติ</string>
     <string name="app_management_search">ค้นหาแอป…</string>
     <string name="app_management_loading">กำลังโหลดแอป…</string>
+    <string name="app_management_refresh">รีเฟรช</string>
     <string name="app_management_sort">เรียงลำดับ</string>
     <string name="app_management_sort_name">เรียงตามชื่อ</string>
     <string name="app_management_sort_queries">เรียงตามจำนวนคิวรี</string>

@@ -32,6 +32,7 @@
     <string name="app_management_loading">جاري تحميل التطبيقات…</string>
     <string name="app_management_queries">الاستعلامات: %d</string>
     <string name="app_management_search">البحث في التطبيقات…</string>
+    <string name="app_management_refresh">تحديث</string>
     <string name="app_management_sort">فرز</string>
     <string name="app_management_sort_blocked">الفرز حسب المحظور</string>
     <string name="app_management_sort_name">الفرز حسب الاسم</string>

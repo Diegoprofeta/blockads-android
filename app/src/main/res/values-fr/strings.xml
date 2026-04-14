@@ -365,6 +365,7 @@
     <string name="app_management_desc">Gérer le routage VPN par application et consulter les statistiques</string>
     <string name="app_management_search">Rechercher des applications…</string>
     <string name="app_management_loading">Chargement des applications…</string>
+    <string name="app_management_refresh">Actualiser</string>
     <string name="app_management_sort">Trier</string>
     <string name="app_management_sort_name">Trier par nom</string>
     <string name="app_management_sort_queries">Trier par requêtes</string>

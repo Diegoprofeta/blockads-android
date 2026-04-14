@@ -336,6 +336,7 @@
     <string name="app_management_desc">Управляйте VPN-маршрутизацией по приложениям и смотрите статистику</string>
     <string name="app_management_search">Поиск приложений…</string>
     <string name="app_management_loading">Загрузка приложений…</string>
+    <string name="app_management_refresh">Обновить</string>
     <string name="app_management_sort">Сортировка</string>
     <string name="app_management_sort_name">Сортировать по имени</string>
     <string name="app_management_sort_queries">Сортировать по запросам</string>
