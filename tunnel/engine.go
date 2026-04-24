@@ -115,6 +115,12 @@ type Engine struct {
 	tcpStackPipe atomic.Pointer[packetPipe]
 	useTcpStack  atomic.Bool
 
+	// Stack-mode MITM state (Phase D). When both are non-nil, the stack
+	// uses the MITM TCP handler; otherwise the Phase C direct-dial
+	// passthrough handler is used.
+	stackCertMgr    *CertManager
+	stackMitmFilter *MitmFilter
+
 	// UID resolver — supplied by Kotlin. When nil, flow-level UID lookup
 	// falls back to UIDUnknown. Stored on the engine so both the stack
 	// (once created) and any future consumer can pull from one place.
@@ -1081,6 +1087,47 @@ func (e *Engine) StartMitmProxy(addr string, certDir string) string {
 	return caPEM
 }
 
+// StartStackMitm initialises MITM state for the userspace TCP/IP
+// stack path. Call this in addition to SetUseTcpStack(true) to have
+// the stack handle HTTPS filtering. The persistent Root CA is loaded
+// from (or generated in) certDir; the returned PEM must be installed
+// on-device as a user CA for browsers to accept intercepted TLS.
+//
+// Returns empty string on error (check logs).
+//
+// Kotlin usage:
+//
+//	adapter.setUseTcpStack(true)
+//	val caPem = engine.startStackMitm(context.filesDir.absolutePath)
+//	// Write caPem to storage and prompt the user to install it.
+//	engine.setMitmAllowedUIDs(browserUids.joinToString(","))
+func (e *Engine) StartStackMitm(certDir string) string {
+	certMgr, err := NewCertManager(certDir)
+	if err != nil {
+		logf("StartStackMitm: cert manager init failed: %v", err)
+		return ""
+	}
+	certMgr.WarmLocalAssetCert()
+
+	e.mu.Lock()
+	e.stackCertMgr = certMgr
+	if e.stackMitmFilter == nil {
+		e.stackMitmFilter = NewMitmFilter()
+	}
+	e.mu.Unlock()
+
+	return certMgr.GetCACertPEM()
+}
+
+// StopStackMitm clears stack-mode MITM state. The stack itself keeps
+// running on the direct-dial handler after this call.
+func (e *Engine) StopStackMitm() {
+	e.mu.Lock()
+	e.stackCertMgr = nil
+	e.stackMitmFilter = nil
+	e.mu.Unlock()
+}
+
 // SetUseTcpStack toggles the experimental userspace TCP/IP stack.
 // When true, the DnsInterceptor redirects non-DNS packets into the
 // stack for per-flow processing (Phase C: direct dial with socket
@@ -1125,13 +1172,22 @@ func (e *Engine) startTcpStackParallel() error {
 	e.mu.Lock()
 	uidr := e.uidResolver
 	protectFn := e.protectFn
+	certMgr := e.stackCertMgr
+	filter := e.stackMitmFilter
 	mtu := uint32(defaultTunMTU)
 	e.tcpStack = stack
 	e.mu.Unlock()
 	e.tcpStackPipe.Store(pipe)
 
 	stack.SetUIDResolver(uidr)
-	stack.SetTcpHandler(newProtectedTcpHandler(uidr, protectFn))
+	if certMgr != nil && filter != nil {
+		// Phase D path — MITM handler applies the full filtering flow.
+		stack.SetTcpHandler(newMitmTcpHandler(certMgr, filter, e, uidr, protectFn))
+		logf("TcpIpStack: MITM handler registered")
+	} else {
+		// Phase C default — direct-dial passthrough, no MITM.
+		stack.SetTcpHandler(newProtectedTcpHandler(uidr, protectFn))
+	}
 	stack.SetUdpHandler(newProtectedUdpHandler(uidr, protectFn))
 
 	if err := stack.Start(pipe, mtu); err != nil {
@@ -1242,10 +1298,11 @@ func (e *Engine) GetMitmCACert(certDir string) string {
 func (e *Engine) SetMitmAllowedUIDs(uidsCsv string) {
 	e.mu.Lock()
 	proxy := e.mitmProxy
+	stackFilter := e.stackMitmFilter
 	e.mu.Unlock()
 
-	if proxy == nil {
-		logf("MITM: SetAllowedUIDs called but proxy not running")
+	if proxy == nil && stackFilter == nil {
+		logf("MITM: SetAllowedUIDs called but neither legacy proxy nor stack MITM is active")
 		return
 	}
 
@@ -1266,7 +1323,14 @@ func (e *Engine) SetMitmAllowedUIDs(uidsCsv string) {
 		}
 	}
 
-	proxy.GetFilter().SetAllowedUIDs(uids)
+	// Apply to both paths so a user running parallel mode sees
+	// consistent behaviour regardless of which handler fires.
+	if proxy != nil {
+		proxy.GetFilter().SetAllowedUIDs(uids)
+	}
+	if stackFilter != nil {
+		stackFilter.SetAllowedUIDs(uids)
+	}
 }
 
 // SetCosmeticCSS sets the minified CSS string to inject into HTML responses
