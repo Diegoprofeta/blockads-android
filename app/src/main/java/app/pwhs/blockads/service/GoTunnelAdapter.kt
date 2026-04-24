@@ -88,6 +88,20 @@ class GoTunnelAdapter(
     }
 
     /**
+     * Toggle the experimental userspace TCP/IP stack path (HTTPS
+     * filtering refactor, Phases C+). When enabled, non-DNS packets
+     * are diverted from the legacy Router into a gVisor-backed
+     * userspace stack that terminates each TCP/UDP flow with per-app
+     * UID visibility.
+     *
+     * Must be called BEFORE [start]; runtime toggling is not supported
+     * in Phase C. Default false (legacy path).
+     */
+    fun setUseTcpStack(enabled: Boolean) {
+        engine.setUseTcpStack(enabled)
+    }
+
+    /**
      * Set up the domain checker (uses Kotlin's FilterListRepository).
      */
     private fun setupDomainChecker() {

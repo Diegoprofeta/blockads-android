@@ -2,13 +2,13 @@ package tunnel
 
 import (
 	"fmt"
+	"io"
 	"sync"
 	"sync/atomic"
 
 	"github.com/xjasonlyu/tun2socks/v2/core"
 	"github.com/xjasonlyu/tun2socks/v2/core/adapter"
-	"github.com/xjasonlyu/tun2socks/v2/core/device"
-	"github.com/xjasonlyu/tun2socks/v2/core/device/fdbased"
+	"github.com/xjasonlyu/tun2socks/v2/core/device/iobased"
 	"github.com/xjasonlyu/tun2socks/v2/core/option"
 	gvisorStack "gvisor.dev/gvisor/pkg/tcpip/stack"
 )
@@ -53,10 +53,10 @@ type UdpFlowHandler func(conn adapter.UDPConn)
 // tun2socks. A single instance manages one TUN file descriptor and
 // dispatches every terminated flow to the registered handlers.
 type TcpIpStack struct {
-	mu      sync.Mutex
-	stack   *gvisorStack.Stack
-	device  device.Device
-	running atomic.Bool
+	mu       sync.Mutex
+	stack    *gvisorStack.Stack
+	endpoint *iobased.Endpoint
+	running  atomic.Bool
 
 	tcpHandler TcpFlowHandler
 	udpHandler UdpFlowHandler
@@ -99,14 +99,17 @@ func (s *TcpIpStack) SetUIDResolver(r UIDResolver) {
 	s.uidr = r
 }
 
-// Start opens the TUN fd, constructs the gVisor stack, and begins
-// processing packets. The method returns as soon as the stack is ready;
-// packet processing runs in background goroutines owned by tun2socks.
-// Use Stop to tear the stack down.
+// Start constructs the gVisor stack on top of the supplied ReadWriter
+// and begins processing packets. Read is expected to return one IP
+// packet per call (up to mtu bytes); Write receives one IP packet per
+// call. Callers provide whatever ReadWriter suits their scenario —
+// a real TUN fd wrapped with os.NewFile, or a packet-pipe adapter for
+// parallel-mode operation alongside an existing TUN reader.
 //
-// Note: after Start succeeds, the stack owns the fd and will close it
-// on Stop. Callers must not close the fd themselves.
-func (s *TcpIpStack) Start(fd int, mtu uint32) error {
+// Start does not take ownership of the ReadWriter. Stop tears down the
+// stack only; closing the underlying fd or pipe is the caller's
+// responsibility.
+func (s *TcpIpStack) Start(rw io.ReadWriter, mtu uint32) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -114,26 +117,25 @@ func (s *TcpIpStack) Start(fd int, mtu uint32) error {
 		return fmt.Errorf("tcp/ip stack already running")
 	}
 
-	dev, err := fdbased.Open(fmt.Sprintf("%d", fd), mtu, 0)
+	ep, err := iobased.New(rw, mtu, 0)
 	if err != nil {
-		return fmt.Errorf("open fdbased device: %w", err)
+		return fmt.Errorf("create iobased endpoint: %w", err)
 	}
 
 	st, err := core.CreateStack(&core.Config{
-		LinkEndpoint:     dev,
+		LinkEndpoint:     ep,
 		TransportHandler: s,
 		Options:          []option.Option{},
 	})
 	if err != nil {
-		dev.Close()
 		return fmt.Errorf("create stack: %w", err)
 	}
 
-	s.device = dev
+	s.endpoint = ep
 	s.stack = st
 	s.running.Store(true)
 
-	logf("TcpIpStack: started on fd=%d mtu=%d", fd, mtu)
+	logf("TcpIpStack: started (mtu=%d)", mtu)
 	return nil
 }
 
@@ -159,10 +161,7 @@ func (s *TcpIpStack) Stop() {
 		s.stack.Close()
 		s.stack = nil
 	}
-	if s.device != nil {
-		s.device.Close()
-		s.device = nil
-	}
+	s.endpoint = nil
 	logf("TcpIpStack: stopped (tcp=%d udp=%d flows handled)", s.tcpFlows.Load(), s.udpFlows.Load())
 }
 

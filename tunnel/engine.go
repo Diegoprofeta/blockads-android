@@ -106,12 +106,24 @@ type Engine struct {
 
 	// Userspace TCP/IP stack (AdGuard-style refactor). Optional; present
 	// only when the new per-app flow model is enabled.
-	tcpStack *TcpIpStack
+	//
+	// tcpStackPipe uses atomic.Pointer because the DnsInterceptor hot
+	// path reads it without holding e.mu — racing with Stop would be a
+	// data race otherwise. The pipe's own Close is panic-free so a
+	// stale pointer read + Push is safe (silently drops).
+	tcpStack     *TcpIpStack
+	tcpStackPipe atomic.Pointer[packetPipe]
+	useTcpStack  atomic.Bool
 
 	// UID resolver — supplied by Kotlin. When nil, flow-level UID lookup
 	// falls back to UIDUnknown. Stored on the engine so both the stack
 	// (once created) and any future consumer can pull from one place.
 	uidResolver UIDResolver
+
+	// protectFn is captured at Start time from the SocketProtector.
+	// Handlers that dial outbound (direct flows, resolver fallbacks)
+	// use it to ensure the socket bypasses the VPN.
+	protectFn func(fd int) bool
 
 	// Standalone Servers
 	standaloneUdp *dns.Server
@@ -371,6 +383,7 @@ func (e *Engine) Start(fd int, protector SocketProtector, wgConfigJSON string) {
 			return protector.Protect(fd)
 		}
 	}
+	e.protectFn = protectFn
 	e.resolver = NewResolver(protectFn)
 	e.resolver.Configure(ParseProtocol(e.protocol), e.primaryDNS, e.fallbackDNS, e.dohURL)
 	e.mu.Unlock()
@@ -435,9 +448,21 @@ func (e *Engine) Start(fd int, protector SocketProtector, wgConfigJSON string) {
 		logf("No WireGuard config, running in DNS-only mode")
 	}
 
+	// ── Optional TCP/IP Stack (AdGuard-style parallel path) ──────────
+	// When enabled, non-DNS packets are redirected from the interceptor
+	// into the stack instead of going through the legacy Router. The
+	// stack terminates each flow and invokes the registered handler
+	// (Phase C: direct-dial passthrough; Phase D: MITM for HTTPS).
+	if e.useTcpStack.Load() {
+		if err := e.startTcpStackParallel(); err != nil {
+			logf("TcpIpStack parallel start failed, falling back to legacy path: %v", err)
+		}
+	}
+
 	// ── Packet Read Loop ─────────────────────────────────────────────
 	// DnsInterceptor reads from TUN, routes DNS to adblock engine,
-	// and non-DNS to Router → active OutboundAdapter.
+	// and non-DNS to Router → active OutboundAdapter (or to the
+	// TcpIpStack pipe when enabled).
 	// This call blocks until Stop() is called.
 	e.interceptor.Run(e.tunFile)
 
@@ -463,6 +488,11 @@ func (e *Engine) Stop() {
 	// Grab MITM proxy reference and clear it while locked
 	proxy := e.mitmProxy
 	e.mitmProxy = nil
+
+	// Tear down TCP/IP stack (parallel mode), if running.
+	stack := e.tcpStack
+	e.tcpStack = nil
+	pipe := e.tcpStackPipe.Swap(nil)
 
 	// Close TUN, clear caches — all while locked
 	if e.tunFile != nil {
@@ -538,6 +568,15 @@ func (e *Engine) Stop() {
 	// Stop proxy OUTSIDE the lock (proxy.Stop() may block briefly)
 	if proxy != nil {
 		proxy.Stop()
+	}
+	// Tear down the TCP/IP stack outside the lock — Stop() blocks on
+	// dispatcher goroutines. Close the pipe first so the outbound
+	// writer goroutine unblocks from Pop(), then stop the stack.
+	if pipe != nil {
+		pipe.Close()
+	}
+	if stack != nil {
+		stack.Stop()
 	}
 }
 
@@ -1042,6 +1081,21 @@ func (e *Engine) StartMitmProxy(addr string, certDir string) string {
 	return caPEM
 }
 
+// SetUseTcpStack toggles the experimental userspace TCP/IP stack.
+// When true, the DnsInterceptor redirects non-DNS packets into the
+// stack for per-flow processing (Phase C: direct dial with socket
+// protection; Phase D: MITM for HTTPS). When false (default), blockads
+// uses the legacy path (VPN HTTP proxy + Router).
+//
+// The flag must be set before Engine.Start for the stack to be wired.
+// Runtime toggling after Start is not supported in Phase C.
+func (e *Engine) SetUseTcpStack(enabled bool) {
+	e.useTcpStack.Store(enabled)
+}
+
+// IsUsingTcpStack reports the current flag value.
+func (e *Engine) IsUsingTcpStack() bool { return e.useTcpStack.Load() }
+
 // SetUIDResolver registers the Kotlin-implemented resolver used to look
 // up the owning app UID for each TCP/UDP flow terminated by the
 // userspace TCP/IP stack. Typically wired once at VPN start.
@@ -1057,6 +1111,72 @@ func (e *Engine) SetUIDResolver(r UIDResolver) {
 		stack.SetUIDResolver(r)
 	}
 }
+
+// startTcpStackParallel brings up the userspace TCP/IP stack on a
+// packet pipe that the DnsInterceptor will feed from. The legacy
+// mitmProxy and Router remain in place — only non-DNS packets diverge
+// into the stack for Phase C testing. Called with e.mu unlocked
+// (sets up state visible to other goroutines atomically via fields
+// protected by locks where necessary).
+func (e *Engine) startTcpStackParallel() error {
+	pipe := newPacketPipe()
+	stack := NewTcpIpStack()
+
+	e.mu.Lock()
+	uidr := e.uidResolver
+	protectFn := e.protectFn
+	mtu := uint32(defaultTunMTU)
+	e.tcpStack = stack
+	e.mu.Unlock()
+	e.tcpStackPipe.Store(pipe)
+
+	stack.SetUIDResolver(uidr)
+	stack.SetTcpHandler(newProtectedTcpHandler(uidr, protectFn))
+	stack.SetUdpHandler(newProtectedUdpHandler(uidr, protectFn))
+
+	if err := stack.Start(pipe, mtu); err != nil {
+		e.mu.Lock()
+		e.tcpStack = nil
+		e.mu.Unlock()
+		e.tcpStackPipe.Store(nil)
+		pipe.Close()
+		return fmt.Errorf("stack start: %w", err)
+	}
+
+	// Drain outbound packets from the stack and write them back to the
+	// real TUN so responses reach the originating app. Runs until the
+	// pipe is closed (Stop → pipe.Close → Pop returns nil).
+	go e.runTcpStackOutboundWriter(pipe)
+
+	logf("TcpIpStack: parallel path started (flag=on)")
+	return nil
+}
+
+// runTcpStackOutboundWriter drains outbound packets emitted by the
+// stack and forwards them to the real TUN device.
+func (e *Engine) runTcpStackOutboundWriter(p *packetPipe) {
+	for {
+		pkt := p.Pop()
+		if pkt == nil {
+			return
+		}
+		e.mu.Lock()
+		tun := e.tunFile
+		e.mu.Unlock()
+		if tun == nil {
+			return
+		}
+		if _, err := tun.Write(pkt); err != nil {
+			logf("TcpIpStack: TUN write error: %v", err)
+			return
+		}
+	}
+}
+
+// defaultTunMTU matches the VpnService.Builder.setMtu(1500) default in
+// AdBlockVpnService.kt. Keeping them aligned avoids fragmentation in
+// the userspace stack.
+const defaultTunMTU = 1500
 
 // IsMitmActive returns true when the HTTPS MITM proxy is running. The
 // DNS interceptor uses this to decide whether to drop outbound UDP 443

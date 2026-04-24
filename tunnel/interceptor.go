@@ -80,19 +80,21 @@ func (i *DnsInterceptor) Run(tunFile *os.File) {
 			if queryInfo != nil {
 				go i.engine.handleDNSQuery(queryInfo)
 			}
-		} else if isUDP443Packet(buf, n) && i.engine.IsMitmActive() {
-			// QUIC / HTTP-3 blocking: while MITM is active, drop UDP 443
-			// so browsers fall back to TCP where the proxy can intercept.
-			// Chrome and other modern browsers prefer HTTP/3 to Google
-			// properties, and UDP passes straight through this VPN
-			// otherwise (not routed to the HTTP proxy), bypassing MITM.
-			//
-			// Scope note: this drops UDP 443 system-wide while MITM is
-			// on, not just for browsers. Apps using custom UDP-443
-			// protocols (gRPC-over-QUIC, some games) will break when
-			// HTTPS filtering is enabled — acceptable trade-off given
-			// the HTTP proxy is already system-wide on this VPN.
+		} else if isUDP443Packet(buf, n) && i.engine.IsMitmActive() && !i.engine.IsUsingTcpStack() {
+			// QUIC / HTTP-3 blocking for the legacy MitmProxy path.
+			// When the userspace stack is active it terminates UDP 443
+			// itself and can make per-flow decisions, so the blanket
+			// drop is no longer needed there.
 			continue
+		} else if i.engine.IsUsingTcpStack() {
+			// Parallel-mode (Phase C): hand non-DNS packets to the
+			// userspace TCP/IP stack instead of the legacy Router.
+			// atomic.Pointer load avoids a data race with Stop() which
+			// clears the pipe under e.mu; the pipe's own Close is
+			// panic-free so a stale pointer + Push is safe.
+			if pipe := i.engine.tcpStackPipe.Load(); pipe != nil {
+				pipe.Push(buf[:n])
+			}
 		} else {
 			// Non-DNS path → route to active outbound adapter
 			// Make a copy because buf will be reused on next iteration
