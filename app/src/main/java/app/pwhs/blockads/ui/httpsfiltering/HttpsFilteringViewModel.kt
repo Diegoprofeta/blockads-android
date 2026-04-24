@@ -310,18 +310,19 @@ class HttpsFilteringViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val certDir = getApplication<Application>().filesDir.absolutePath
-                val caPem = engine.startMitmProxy("127.0.0.1:8080", certDir)
+                engine.setUseTcpStack(true)
+                val caPem = engine.startStackMitm(certDir)
                 if (caPem.isNotEmpty()) {
                     _caCertPem.value = caPem
                     _isProxyRunning.value = true
                     syncUidsToGoEngine(_browsers.value)
                     _events.emit(HttpsFilteringEvent.ProxyStarted)
-                    Timber.d("MITM Proxy started")
+                    Timber.d("HTTPS filtering started (stack MITM)")
                 } else {
-                    _events.emit(HttpsFilteringEvent.Error("Failed to start MITM proxy"))
+                    _events.emit(HttpsFilteringEvent.Error("Failed to start HTTPS filtering"))
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error starting MITM proxy")
+                Timber.e(e, "Error starting HTTPS filtering")
                 _events.emit(HttpsFilteringEvent.Error("Error: ${e.message}"))
             }
         }
@@ -330,13 +331,14 @@ class HttpsFilteringViewModel(
     private fun stopProxy() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                engine.stopMitmProxy()
+                engine.stopStackMitm()
+                engine.setUseTcpStack(false)
                 _isProxyRunning.value = false
                 _caCertPem.value = null
                 _events.emit(HttpsFilteringEvent.ProxyStopped)
-                Timber.d("MITM Proxy stopped")
+                Timber.d("HTTPS filtering stopped")
             } catch (e: Exception) {
-                Timber.e(e, "Error stopping MITM proxy")
+                Timber.e(e, "Error stopping HTTPS filtering")
             }
         }
     }

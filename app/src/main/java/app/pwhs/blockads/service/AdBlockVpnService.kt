@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.ProxyInfo
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -624,16 +623,11 @@ class AdBlockVpnService : VpnService() {
                     .setMtu(1500)
             }
 
-            // Phase 7: Auto-Routing via HTTP Proxy (Android 10+)
-            if (httpsFilteringEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                try {
-                    val proxyInfo = ProxyInfo.buildDirectProxy("127.0.0.1", 8080)
-                    builder.setHttpProxy(proxyInfo)
-                    Timber.d("VPN Auto-Routing (HTTP Proxy) enabled to 127.0.0.1:8080")
-                } catch (e: Exception) {
-                    Timber.w(e, "Could not set HTTP proxy for VPN")
-                }
-            }
+            // HTTPS filtering no longer relies on VpnService.setHttpProxy.
+            // The userspace TCP/IP stack in the Go tunnel terminates every
+            // flow and applies per-app MITM decisions directly (Phase E
+            // of the AdGuard-style refactor). System apps that previously
+            // bypassed the HTTP proxy are now covered by the stack.
 
             // Exclude our own app from VPN to avoid loops
             try {

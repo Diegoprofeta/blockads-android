@@ -254,10 +254,14 @@ class GoTunnelAdapter(
         if (isRunning) return
         isRunning = true
 
-        // 1. Synchronize the MITM Proxy State before starting the tunnel
+        // 1. Synchronize the MITM state before starting the tunnel.
+        // HTTPS filtering now runs through the userspace TCP/IP stack
+        // (Phase E): each TCP flow is terminated in Go with real
+        // source-UID visibility, so per-app scoping (MITM only the
+        // selected browsers) actually works on Android 10+. The legacy
+        // VpnService HTTP proxy path is no longer used.
         if (httpsFilteringEnabled && certDir.isNotEmpty()) {
             try {
-                // Map package names to UIDs and set them in Go
                 val pm = context.packageManager
                 val uids = selectedBrowsers.mapNotNull { pkg ->
                     try {
@@ -266,15 +270,14 @@ class GoTunnelAdapter(
                         null
                     }
                 }.joinToString(",")
-                
-                // Always set UIDs (empty string clears the filter in Go)
-                engine.setMitmAllowedUIDs(uids)
 
-                // Start the MITM Proxy in Go (listens on 127.0.0.1:8080)
-                engine.startMitmProxy("127.0.0.1:8080", certDir)
-                Timber.d("MITM Proxy automatically started on VPN boot")
+                // Enable the stack, init CA + filter, register UIDs.
+                engine.setUseTcpStack(true)
+                engine.startStackMitm(certDir)
+                engine.setMitmAllowedUIDs(uids)
+                Timber.d("HTTPS filtering via userspace TCP/IP stack (browsers=${selectedBrowsers.size})")
             } catch (e: Exception) {
-                Timber.e(e, "Failed to auto-start MITM proxy on VPN boot")
+                Timber.e(e, "Failed to init stack MITM on VPN boot")
             }
         }
 
