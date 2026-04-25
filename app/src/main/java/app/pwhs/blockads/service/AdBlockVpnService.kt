@@ -609,71 +609,18 @@ class AdBlockVpnService : VpnService() {
                 b.addRoute("10.255.255.1", 32)
                 b
             } else {
-                // Direct mode — DNS-only or DNS+HTTPS filtering.
-                //
-                // When HTTPS filtering is enabled, route ALL traffic
-                // through the TUN so the userspace TCP/IP stack can
-                // terminate every flow and apply per-app MITM. Without
-                // this route, only port-53 DNS reaches the stack and
-                // HTTPS-level filtering (cosmetic CSS injection,
-                // sub-resource ad blocking inside MITM'd connections)
-                // is silently broken — Phase E removed setHttpProxy
-                // which was previously the indirect path that brought
-                // HTTPS into our process.
-                //
-                // When HTTPS filtering is disabled, keep the legacy
-                // DNS-only routing for minimum overhead.
-                Timber.d("Establishing VPN in DNS-only mode (httpsFiltering=$httpsFilteringEnabled)")
-                val b = Builder()
+                // Direct mode — only route DNS traffic
+                Timber.d("Establishing VPN in DNS-only mode")
+                Builder()
                     .setSession("BlockAds")
                     .addAddress("10.0.0.2", 32)
+                    .addRoute("10.0.0.1", 32)
                     .addDnsServer("10.0.0.1")
+                    .addAddress("fd00::2", 128)
+                    .addRoute("fd00::1", 128)
+                    .addDnsServer("fd00::1")
                     .setBlocking(true)
                     .setMtu(1500)
-
-                if (httpsFilteringEnabled) {
-                    // Full-route IPv4 only. We deliberately omit IPv6
-                    // here: many mobile carrier networks lack v6
-                    // connectivity, so even though the device thinks
-                    // it has v6 via this VPN, the Go tunnel process's
-                    // outbound v6 dials would fail with "network is
-                    // unreachable" and stall apps that don't fall
-                    // back to v4 (Facebook Messenger XMPP, push
-                    // services, etc.) and slow down those that do.
-                    // Browsers that prefer v6 will see no AAAA route
-                    // and use v4 cleanly.
-                    b.addRoute("0.0.0.0", 0)
-
-                    // Exclude LAN/private ranges so local services
-                    // (router admin, printers, devices) stay reachable.
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        try {
-                            b.excludeRoute(android.net.IpPrefix(java.net.InetAddress.getByName("10.0.0.0"), 8))
-                            b.excludeRoute(android.net.IpPrefix(java.net.InetAddress.getByName("172.16.0.0"), 12))
-                            b.excludeRoute(android.net.IpPrefix(java.net.InetAddress.getByName("192.168.0.0"), 16))
-                            b.excludeRoute(android.net.IpPrefix(java.net.InetAddress.getByName("169.254.0.0"), 16))
-                        } catch (e: Exception) {
-                            Timber.w(e, "Failed to exclude LAN routes")
-                        }
-                    }
-
-                    // Re-add explicit /32 routes for the fake DNS
-                    // servers AFTER the LAN exclude. 10.0.0.1 falls
-                    // inside the 10.0.0.0/8 exclude above; without
-                    // this override DNS would go out the underlying
-                    // network and never reach our interceptor (Chrome
-                    // surfaces it as DNS_PROBE_STARTED). A more-
-                    // specific addRoute wins over an excludeRoute on
-                    // VpnService.Builder regardless of call order.
-                    b.addRoute("10.0.0.1", 32)
-                } else {
-                    // DNS-only routes (legacy minimal mode).
-                    b.addAddress("fd00::2", 128)
-                    b.addDnsServer("fd00::1")
-                    b.addRoute("10.0.0.1", 32)
-                    b.addRoute("fd00::1", 128)
-                }
-                b
             }
 
             // HTTPS filtering no longer relies on VpnService.setHttpProxy.
