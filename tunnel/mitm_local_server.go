@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -39,6 +40,10 @@ func ServeLocalAsset(req *http.Request) *http.Response {
 	switch {
 	case path == "/cosmetic.css":
 		return serveCSS(req)
+	case path == "/scriptlets.js":
+		return serveScriptlets(req)
+	case strings.HasPrefix(path, "/sl-") && strings.HasSuffix(path, ".js"):
+		return servePerHostScriptlets(req)
 	case path == "/health":
 		return serveHealth(req)
 	default:
@@ -57,6 +62,68 @@ func serveCSS(req *http.Request) *http.Response {
 	}
 
 	return buildTextResponse(req, 200, "text/css; charset=utf-8", css)
+}
+
+// scriptletsJS holds the runtime library injected into pages so that
+// per-host scriptlet invocations have something to call. Phase S-A
+// ships a placeholder; S-B replaces it with a real runtime that
+// implements set-constant, abort-on-property-read, prevent-fetch, etc.
+var (
+	scriptletsMu      sync.RWMutex
+	scriptletsJS      = "/* BlockAds scriptlets runtime not yet loaded (Phase S-A placeholder) */\n" +
+		"(function(){window.__blockadsScriptlets={loaded:true,version:'S-A',invoke:function(n,a){console.debug('[BlockAds] scriptlet stub:',n,a);}};})();"
+	perHostScriptlets = make(map[string]string) // host → JS invocation block
+)
+
+// SetScriptletsRuntime replaces the runtime JS served at /scriptlets.js.
+// Called from Kotlin once the real @adguard/scriptlets bundle is built
+// and available. Phase S-A leaves this empty; S-B wires it.
+func SetScriptletsRuntime(js string) {
+	scriptletsMu.Lock()
+	scriptletsJS = js
+	scriptletsMu.Unlock()
+	logf("Scriptlets runtime updated: %d bytes", len(js))
+}
+
+// SetPerHostScriptlets replaces the per-host invocation map. The key
+// is the bare hostname (no port); the value is a snippet of JS that
+// invokes the relevant scriptlets for that host. Calling with a nil
+// or empty map clears the table.
+func SetPerHostScriptlets(table map[string]string) {
+	scriptletsMu.Lock()
+	if table == nil {
+		perHostScriptlets = make(map[string]string)
+	} else {
+		perHostScriptlets = table
+	}
+	scriptletsMu.Unlock()
+	logf("Per-host scriptlets updated: %d hosts", len(table))
+}
+
+// serveScriptlets returns the runtime JS library.
+func serveScriptlets(req *http.Request) *http.Response {
+	scriptletsMu.RLock()
+	js := scriptletsJS
+	scriptletsMu.RUnlock()
+	return buildTextResponse(req, 200, "application/javascript; charset=utf-8", js)
+}
+
+// servePerHostScriptlets returns the host-specific scriptlet invocations.
+// Path format: /sl-<host>.js (e.g., /sl-www.youtube.com.js). If no
+// rules apply to the host the response is an empty JS comment.
+func servePerHostScriptlets(req *http.Request) *http.Response {
+	path := req.URL.Path
+	host := strings.TrimSuffix(strings.TrimPrefix(path, "/sl-"), ".js")
+	host = strings.ToLower(host)
+
+	scriptletsMu.RLock()
+	js := perHostScriptlets[host]
+	scriptletsMu.RUnlock()
+
+	if js == "" {
+		js = "/* BlockAds: no scriptlets for " + host + " */"
+	}
+	return buildTextResponse(req, 200, "application/javascript; charset=utf-8", js)
 }
 
 // serveHealth returns a simple health check (useful for debugging).
