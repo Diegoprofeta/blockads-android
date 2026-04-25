@@ -1268,6 +1268,28 @@ func (e *Engine) SetMitmAllowedUIDs(uidsCsv string) {
 	stackFilter.SetAllowedUIDs(uids)
 }
 
+// SetExtraPassthroughSuffixes loads the runtime passthrough list onto
+// the stack-mode MITM filter. Call this after StartStackMitm. The
+// input is a newline-separated string (the raw contents of
+// assets/https_passthrough.txt); blank lines and # / // comments are
+// ignored. gomobile doesn't bridge []string cleanly, so we use a
+// single string and split inside Go.
+//
+// Kotlin usage:
+//
+//	val raw = context.assets.open("https_passthrough.txt").bufferedReader().readText()
+//	engine.setExtraPassthroughSuffixes(raw)
+func (e *Engine) SetExtraPassthroughSuffixes(content string) {
+	e.mu.Lock()
+	filter := e.stackMitmFilter
+	e.mu.Unlock()
+	if filter == nil {
+		logf("SetExtraPassthroughSuffixes: stack MITM not active")
+		return
+	}
+	filter.SetExtraPassthroughSuffixes(strings.Split(content, "\n"))
+}
+
 // SetCosmeticCSS sets the minified CSS string to inject into HTML responses
 // for cosmetic ad hiding (e.g., EasyList `##.ad-banner` rules).
 //

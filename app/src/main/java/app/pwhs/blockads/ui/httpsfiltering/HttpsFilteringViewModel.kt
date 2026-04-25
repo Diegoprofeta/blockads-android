@@ -316,6 +316,14 @@ class HttpsFilteringViewModel(
                     _caCertPem.value = caPem
                     _isProxyRunning.value = true
                     syncUidsToGoEngine(_browsers.value)
+                    try {
+                        val passthrough = getApplication<Application>().assets
+                            .open("https_passthrough.txt")
+                            .bufferedReader().use { it.readText() }
+                        engine.setExtraPassthroughSuffixes(passthrough)
+                    } catch (e: Exception) {
+                        Timber.w(e, "Failed to load https_passthrough.txt asset")
+                    }
                     _events.emit(HttpsFilteringEvent.ProxyStarted)
                     Timber.d("HTTPS filtering started (stack MITM)")
                 } else {

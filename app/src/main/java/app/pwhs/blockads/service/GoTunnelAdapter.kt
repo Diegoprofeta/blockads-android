@@ -275,6 +275,20 @@ class GoTunnelAdapter(
                 engine.setUseTcpStack(true)
                 engine.startStackMitm(certDir)
                 engine.setMitmAllowedUIDs(uids)
+
+                // Load curated passthrough domains (banking, payment,
+                // gov, secure messaging, etc.) from assets so cert-
+                // pinned apps and security-critical traffic don't
+                // attempt MITM. Sourced from
+                // github.com/pass-with-high-score/HttpsExclusions.
+                try {
+                    val passthrough = context.assets.open("https_passthrough.txt")
+                        .bufferedReader().use { it.readText() }
+                    engine.setExtraPassthroughSuffixes(passthrough)
+                } catch (e: Exception) {
+                    Timber.w(e, "Failed to load https_passthrough.txt asset")
+                }
+
                 Timber.d("HTTPS filtering via userspace TCP/IP stack (browsers=${selectedBrowsers.size})")
             } catch (e: Exception) {
                 Timber.e(e, "Failed to init stack MITM on VPN boot")
