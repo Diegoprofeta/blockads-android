@@ -69,10 +69,10 @@ func serveCSS(req *http.Request) *http.Response {
 // ships a placeholder; S-B replaces it with a real runtime that
 // implements set-constant, abort-on-property-read, prevent-fetch, etc.
 var (
-	scriptletsMu      sync.RWMutex
-	scriptletsJS      = "/* BlockAds scriptlets runtime not yet loaded (Phase S-A placeholder) */\n" +
-		"(function(){window.__blockadsScriptlets={loaded:true,version:'S-A',invoke:function(n,a){console.debug('[BlockAds] scriptlet stub:',n,a);}};})();"
-	perHostScriptlets = make(map[string]string) // host → JS invocation block
+	scriptletsMu sync.RWMutex
+	// Default to the S-B runtime; can be overridden via SetScriptletsRuntime.
+	scriptletsJS  = scriptletRuntimeJS
+	scriptletDb   *scriptletStore
 )
 
 // SetScriptletsRuntime replaces the runtime JS served at /scriptlets.js.
@@ -85,19 +85,16 @@ func SetScriptletsRuntime(js string) {
 	logf("Scriptlets runtime updated: %d bytes", len(js))
 }
 
-// SetPerHostScriptlets replaces the per-host invocation map. The key
-// is the bare hostname (no port); the value is a snippet of JS that
-// invokes the relevant scriptlets for that host. Calling with a nil
-// or empty map clears the table.
-func SetPerHostScriptlets(table map[string]string) {
+// SetScriptletStore replaces the scriptlet rule database used to
+// generate per-host invocations. Called by the engine after parsing
+// filter lists for +js() rules. Passing nil clears the store.
+func SetScriptletStore(s *scriptletStore) {
 	scriptletsMu.Lock()
-	if table == nil {
-		perHostScriptlets = make(map[string]string)
-	} else {
-		perHostScriptlets = table
-	}
+	scriptletDb = s
 	scriptletsMu.Unlock()
-	logf("Per-host scriptlets updated: %d hosts", len(table))
+	if s != nil {
+		logf("Scriptlet store updated: %d global, %d host-bound", len(s.all), len(s.byHost))
+	}
 }
 
 // serveScriptlets returns the runtime JS library.
@@ -117,9 +114,13 @@ func servePerHostScriptlets(req *http.Request) *http.Response {
 	host = strings.ToLower(host)
 
 	scriptletsMu.RLock()
-	js := perHostScriptlets[host]
+	store := scriptletDb
 	scriptletsMu.RUnlock()
 
+	js := ""
+	if store != nil {
+		js = store.buildHostInvocations(host)
+	}
 	if js == "" {
 		js = "/* BlockAds: no scriptlets for " + host + " */"
 	}

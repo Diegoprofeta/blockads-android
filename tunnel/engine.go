@@ -1290,6 +1290,32 @@ func (e *Engine) SetExtraPassthroughSuffixes(content string) {
 	filter.SetExtraPassthroughSuffixes(strings.Split(content, "\n"))
 }
 
+// SetScriptletRules parses +js() rules from the supplied filter-list
+// content and rebuilds the in-memory store. Lines that aren't +js()
+// rules are ignored, so the same content that drives cosmetic CSS
+// can be passed verbatim. Pass an empty string to clear the store.
+//
+// Kotlin usage:
+//
+//	val raw = filterRepo.allFilterTextConcatenated()
+//	engine.setScriptletRules(raw)
+func (e *Engine) SetScriptletRules(content string) {
+	if content == "" {
+		SetScriptletStore(nil)
+		return
+	}
+	rules := parseScriptletRules(content)
+	if len(rules) == 0 {
+		SetScriptletStore(nil)
+		logf("Scriptlet rules: parsed 0 rules from %d-byte input", len(content))
+		return
+	}
+	store := buildScriptletStore(rules)
+	SetScriptletStore(store)
+	logf("Scriptlet rules: parsed %d rules (%d global, %d host-bound)",
+		len(rules), len(store.all), len(store.byHost))
+}
+
 // SetCosmeticCSS sets the minified CSS string to inject into HTML responses
 // for cosmetic ad hiding (e.g., EasyList `##.ad-banner` rules).
 //
