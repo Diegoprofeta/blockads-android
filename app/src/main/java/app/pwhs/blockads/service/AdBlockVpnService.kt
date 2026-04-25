@@ -609,9 +609,9 @@ class AdBlockVpnService : VpnService() {
                 b.addRoute("10.255.255.1", 32)
                 b
             } else {
-                // Direct mode — only route DNS traffic
-                Timber.d("Establishing VPN in DNS-only mode")
-                Builder()
+                // Direct mode — DNS + (optional) HTTPS local asset host.
+                Timber.d("Establishing VPN in DNS-only mode (httpsFiltering=$httpsFilteringEnabled)")
+                val b = Builder()
                     .setSession("BlockAds")
                     .addAddress("10.0.0.2", 32)
                     .addRoute("10.0.0.1", 32)
@@ -621,6 +621,17 @@ class AdBlockVpnService : VpnService() {
                     .addDnsServer("fd00::1")
                     .setBlocking(true)
                     .setMtu(1500)
+
+                if (httpsFilteringEnabled) {
+                    // Route the synthetic IP range used for the local
+                    // asset host (engine maps local.pwhs.app → 198.51.100.1)
+                    // so the browser's request enters the TUN and the
+                    // userspace stack can serve cosmetic.css / scriptlets.js
+                    // / sl-<host>.js from memory. RFC 5737 documentation
+                    // prefix — never collides with real Internet traffic.
+                    b.addRoute("198.51.100.0", 24)
+                }
+                b
             }
 
             // HTTPS filtering no longer relies on VpnService.setHttpProxy.
