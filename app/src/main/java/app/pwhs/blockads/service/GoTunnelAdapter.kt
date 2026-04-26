@@ -393,7 +393,8 @@ class GoTunnelAdapter(
     }
 
     /**
-     * Load the latest cosmetic rules from the cache and send them to the Go engine.
+     * Load the latest cosmetic rules + scriptlet rules from the cache
+     * and send them to the Go engine.
      */
     fun updateCosmeticRules() {
         try {
@@ -413,6 +414,20 @@ class GoTunnelAdapter(
         } catch (e: Exception) {
             Timber.e(e, "Failed to load cosmetic CSS for engine")
             engine.setCosmeticCSS("")
+        }
+
+        try {
+            val sp = filterRepo.getScriptletsPath()
+            if (sp != null) {
+                val text = java.io.File(sp).readText()
+                engine.setScriptletRules(text)
+                Timber.d("Sent ${text.length} bytes of scriptlet rules to Go engine")
+            } else {
+                engine.setScriptletRules("")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to load scriptlet rules for engine")
+            engine.setScriptletRules("")
         }
     }
 
