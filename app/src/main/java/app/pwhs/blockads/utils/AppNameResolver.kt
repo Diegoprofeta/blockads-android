@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.os.Build
+import android.os.SystemClock
 import android.system.OsConstants
 import timber.log.Timber
 import java.io.File
@@ -57,7 +58,10 @@ class AppNameResolver(private val context: Context) {
 
     /**
      * Find the UID owning the connection.
-     * Uses official API on Android 10+, falls back to /proc/net/udp on older versions.
+     * Uses official API on Android 10+, falls back to /proc/net/udp on older
+     * versions or when the official API returns UID_UNKNOWN (Root Proxy mode:
+     * iptables REDIRECT rewrites the 5-tuple so getConnectionOwnerUid can't
+     * see the original socket pair).
      */
     private fun findUidForConnection(
         sourcePort: Int,
@@ -66,106 +70,118 @@ class AppNameResolver(private val context: Context) {
         destPort: Int
     ): Int {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return try {
+            val officialUid = try {
                 val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val local = InetSocketAddress(InetAddress.getByAddress(sourceIp), sourcePort)
                 val remote = InetSocketAddress(InetAddress.getByAddress(destIp), destPort)
                 cm.getConnectionOwnerUid(OsConstants.IPPROTO_UDP, local, remote)
-            } catch (e: Exception) {
-                // Don't fall back to /proc/net — it's blocked on Android 10+ and
-                // the root shell fallback is too slow (blocks DNS processing threads)
+            } catch (_: Exception) {
                 -1
             }
+            if (officialUid >= 0) return officialUid
+            // Fall through to cached /proc/net lookup for Root Proxy mode.
         }
 
-        // Fallback for API < 29 only
         return findUidFromProcNet(sourcePort)
     }
 
+    // Cached snapshot of /proc/net/udp{,6}. A full read is amortised across
+    // every DNS query that arrives inside [PROC_NET_TTL_MS] of the snapshot.
+    // Without this, root-shell reads serialise and DNS threads back up under
+    // load (issue #130). -1 entries (port not in snapshot) are cached too so
+    // we don't re-snapshot on every miss.
+    @Volatile private var procNetSnapshot: Map<Int, Int>? = null
+    @Volatile private var procNetSnapshotAtMs: Long = 0L
+    private val procNetLock = Any()
+
     /**
      * Fallback: Look up /proc/net/udp and /proc/net/udp6 to find the UID owning the given port.
-     * Used on Android versions before 10 (API < 29) where getConnectionOwnerUid() is unavailable.
+     * Used on Android versions before 10 (API < 29) and on Android 10+ in
+     * Root Proxy mode (where getConnectionOwnerUid returns -1 because
+     * iptables REDIRECT rewrites the 5-tuple).
      */
     private fun findUidFromProcNet(port: Int): Int {
-        val hexPort = String.format("%04X", port)
+        val snapshot = getOrRefreshProcNetSnapshot()
+        return snapshot[port] ?: -1
+    }
 
-        // Normal unprivileged read (works for own app's sockets and on older Android)
-        findUidInProcFile("/proc/net/udp", hexPort)?.let { return it }
-        findUidInProcFile("/proc/net/udp6", hexPort)?.let { return it }
-
-        // Root-privileged read: on Android 10+, SELinux restricts /proc/net/udp
-        // to only show the app's own sockets. In Root Proxy mode, we use the
-        // established root shell to read the full socket table.
-        findUidFromProcNetRoot(hexPort)?.let { return it }
-
-        return -1
+    private fun getOrRefreshProcNetSnapshot(): Map<Int, Int> {
+        val now = SystemClock.elapsedRealtime()
+        val cached = procNetSnapshot
+        if (cached != null && now - procNetSnapshotAtMs < PROC_NET_TTL_MS) {
+            return cached
+        }
+        synchronized(procNetLock) {
+            // Double-check after acquiring the lock — another thread may
+            // have refreshed while we were waiting.
+            val cached2 = procNetSnapshot
+            if (cached2 != null && SystemClock.elapsedRealtime() - procNetSnapshotAtMs < PROC_NET_TTL_MS) {
+                return cached2
+            }
+            val fresh = readProcNetSnapshot()
+            procNetSnapshot = fresh
+            procNetSnapshotAtMs = SystemClock.elapsedRealtime()
+            return fresh
+        }
     }
 
     /**
-     * Read /proc/net/udp and /proc/net/udp6 via root shell (libsu).
-     * This bypasses SELinux restrictions on Android 10+ that prevent
-     * normal apps from seeing other apps' socket entries.
+     * Build a port → UID map from /proc/net/udp{,6}. Tries unprivileged
+     * read first (works on API < 29 and for our own sockets). On Android
+     * 10+ SELinux hides other apps' sockets, so we fall back to a single
+     * root-shell read via libsu's persistent shell.
      */
-    private fun findUidFromProcNetRoot(hexPort: String): Int? {
-        try {
-            val result = com.topjohnwu.superuser.Shell.cmd(
-                "cat /proc/net/udp /proc/net/udp6 2>/dev/null"
-            ).exec()
-            if (!result.isSuccess) return null
-
-            for (line in result.out) {
-                try {
-                    val parts = line.trim().split("\\s+".toRegex())
-                    if (parts.size >= 8) {
-                        val localAddress = parts[1]
-                        val colonIndex = localAddress.lastIndexOf(':')
-                        if (colonIndex >= 0) {
-                            val localPort = localAddress.substring(colonIndex + 1)
-                            if (localPort.equals(hexPort, ignoreCase = true)) {
-                                return parts[7].toIntOrNull()
-                            }
-                        }
+    private fun readProcNetSnapshot(): Map<Int, Int> {
+        val map = HashMap<Int, Int>()
+        parseProcFile("/proc/net/udp", map)
+        parseProcFile("/proc/net/udp6", map)
+        if (map.isEmpty()) {
+            try {
+                val result = com.topjohnwu.superuser.Shell.cmd(
+                    "cat /proc/net/udp /proc/net/udp6 2>/dev/null"
+                ).exec()
+                if (result.isSuccess) {
+                    for (line in result.out) {
+                        parseProcLine(line, map)
                     }
-                } catch (_: Exception) {
-                    // Skip malformed lines
                 }
+            } catch (e: Exception) {
+                Timber.d("Root /proc/net lookup failed: ${e.message}")
             }
-        } catch (e: Exception) {
-            Timber.d("Root /proc/net lookup failed: ${e.message}")
         }
-        return null
+        return map
     }
 
-    private fun findUidInProcFile(path: String, hexPort: String): Int? {
+    private fun parseProcFile(path: String, out: MutableMap<Int, Int>) {
         try {
             File(path).bufferedReader(Charsets.UTF_8).use { reader ->
-                // Skip header line
-                reader.readLine() ?: return null
-
+                reader.readLine() ?: return
                 var line = reader.readLine()
                 while (line != null) {
-                    try {
-                        val parts = line.trim().split("\\s+".toRegex())
-                        if (parts.size >= 8) {
-                            val localAddress = parts[1]
-                            val colonIndex = localAddress.lastIndexOf(':')
-                            if (colonIndex >= 0) {
-                                val localPort = localAddress.substring(colonIndex + 1)
-                                if (localPort.equals(hexPort, ignoreCase = true)) {
-                                    return parts[7].toIntOrNull()
-                                }
-                            }
-                        }
-                    } catch (_: Exception) {
-                        // Skip malformed lines
-                    }
+                    parseProcLine(line, out)
                     line = reader.readLine()
                 }
             }
         } catch (e: Exception) {
             Timber.d("Cannot read $path: ${e.message}")
         }
-        return null
+    }
+
+    private fun parseProcLine(line: String, out: MutableMap<Int, Int>) {
+        try {
+            val parts = line.trim().split("\\s+".toRegex())
+            if (parts.size < 8) return
+            val localAddress = parts[1]
+            val colonIndex = localAddress.lastIndexOf(':')
+            if (colonIndex < 0) return
+            val port = localAddress.substring(colonIndex + 1).toInt(16)
+            val uid = parts[7].toIntOrNull() ?: return
+            // First-writer-wins: the kernel can list a port across both
+            // udp and udp6, but the UID is the same.
+            out.putIfAbsent(port, uid)
+        } catch (_: Exception) {
+            // Skip header / malformed lines
+        }
     }
 
     private fun getAppNameForUid(uid: Int): String {
@@ -211,5 +227,12 @@ class AppNameResolver(private val context: Context) {
         val packageName = packages[0]
         uidToPackageNameCache[uid] = packageName
         return packageName
+    }
+
+    private companion object {
+        // Short enough that recycled ephemeral ports don't get mis-attributed
+        // to a previous owner, long enough to collapse a burst of DNS queries
+        // into a single /proc/net read.
+        const val PROC_NET_TTL_MS = 3_000L
     }
 }
