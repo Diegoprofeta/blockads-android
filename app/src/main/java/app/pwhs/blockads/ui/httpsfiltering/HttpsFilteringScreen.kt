@@ -41,7 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,7 +68,7 @@ fun HttpsFilteringScreen(
     val certStatus by viewModel.certStatus.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    val resources = LocalResources.current
 
     val wgDisabledMsg = stringResource(R.string.https_filtering_wireguard_disabled)
     val certSavedLegacyMsg = stringResource(R.string.https_filtering_cert_saved_legacy)
@@ -95,7 +95,7 @@ fun HttpsFilteringScreen(
             when (event) {
                 is HttpsFilteringEvent.CaCertSavedToDownloads -> {
                     snackbarHostState.showSnackbar(
-                        context.getString(R.string.https_filtering_cert_saved_downloads, event.fileName)
+                        resources.getString(R.string.https_filtering_cert_saved_downloads, event.fileName)
                     )
                 }
 

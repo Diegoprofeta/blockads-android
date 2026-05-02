@@ -53,7 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -81,7 +81,7 @@ fun WireGuardImportScreen(
     val excludeLan by viewModel.excludeLan.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    val resources = LocalResources.current
     var renameTarget by remember { mutableStateOf<WireGuardProfile?>(null) }
     var deleteTarget by remember { mutableStateOf<WireGuardProfile?>(null) }
 
@@ -102,11 +102,11 @@ fun WireGuardImportScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is WireGuardUiEvent.ProfileImported ->
-                    snackbarHostState.showSnackbar(context.getString(R.string.wireguard_imported, event.name))
+                    snackbarHostState.showSnackbar(resources.getString(R.string.wireguard_imported, event.name))
                 is WireGuardUiEvent.ProfileDeleted ->
-                    snackbarHostState.showSnackbar(context.getString(R.string.wireguard_deleted, event.name))
+                    snackbarHostState.showSnackbar(resources.getString(R.string.wireguard_deleted, event.name))
                 is WireGuardUiEvent.ProfileActivated ->
-                    snackbarHostState.showSnackbar(context.getString(R.string.wireguard_active, event.name))
+                    snackbarHostState.showSnackbar(resources.getString(R.string.wireguard_active, event.name))
                 is WireGuardUiEvent.ProfileRenamed ->
                     snackbarHostState.showSnackbar(renamedMsg)
                 is WireGuardUiEvent.WireGuardToggled ->
