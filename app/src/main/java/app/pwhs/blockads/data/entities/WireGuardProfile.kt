@@ -10,7 +10,7 @@ import java.util.UUID
  * marked active in [app.pwhs.blockads.data.datastore.AppPreferences] and is
  * the one the VPN service uses on start.
  */
-@Serializab
+@Serializable
 data class WireGuardProfile(
     val id: String,
     val name: String,

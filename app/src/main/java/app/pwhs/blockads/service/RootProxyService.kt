@@ -225,8 +225,16 @@ class RootProxyService : Service() {
                     stopProxy()
                     return@launch
                 }
-                
+
                 retryManager.reset()
+
+                // Start the background /proc/net/udp snapshotter. The
+                // engine's AppResolver reads from this snapshot instead
+                // of doing an inline shell call per DNS query — needed
+                // because iptables REDIRECT breaks getConnectionOwnerUid
+                // and short-lived DNS sockets close before any on-demand
+                // /proc/net read could see them.
+                appNameResolver.startSnapshotter(serviceScope)
 
                 _state.value = VpnState.RUNNING
                 startTimestamp = System.currentTimeMillis()
@@ -250,6 +258,7 @@ class RootProxyService : Service() {
         _state.value = VpnState.STOPPING
         watchdogJob?.cancel()
         stopNotificationUpdates()
+        appNameResolver.stopSnapshotter()
 
         // Teardown iptables rules (critical — prevents internet loss)
         IptablesManager.teardownRules()
@@ -299,6 +308,7 @@ class RootProxyService : Service() {
 
         watchdogJob?.cancel()
         stopNotificationUpdates()
+        appNameResolver.stopSnapshotter()
 
         serviceScope.launch(Dispatchers.IO) {
             // Stop Go engine
@@ -349,6 +359,7 @@ class RootProxyService : Service() {
         startTimestamp = 0L
         watchdogJob?.cancel()
         stopNotificationUpdates()
+        if (::appNameResolver.isInitialized) appNameResolver.stopSnapshotter()
         IptablesManager.teardownRules()
         serviceScope.cancel()
         super.onDestroy()

@@ -167,8 +167,15 @@ class GoTunnelAdapter(
                 val identity = appNameResolver.resolveIdentity(
                     sourcePort.toInt(), sourceIP, destIP, destPort.toInt()
                 )
-                if (identity.packageName.isEmpty()) return@AppResolver ""
-                identity.packageName
+                // Prefer packageName so the LogCallback can resolve a real
+                // app label. For system UIDs (netd 1052, dns_resolver, …)
+                // there is no package — fall back to the friendly appName
+                // so Go doesn't keep its "RootProxy" default.
+                when {
+                    identity.packageName.isNotEmpty() -> identity.packageName
+                    identity.appName.isNotEmpty() -> identity.appName
+                    else -> ""
+                }
             } catch (e: Exception) {
                 Timber.e(e, "App resolve failed")
                 ""
