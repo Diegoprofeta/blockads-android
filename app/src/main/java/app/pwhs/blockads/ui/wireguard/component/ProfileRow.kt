@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.VpnLock
@@ -42,6 +43,7 @@ fun ProfileRow(
     profile: WireGuardProfile,
     isActive: Boolean,
     onClick: () -> Unit,
+    onEdit: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -106,13 +108,14 @@ fun ProfileRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            ProfileMenu(onRename = onRename, onDelete = onDelete)
+            ProfileMenu(onEdit = onEdit, onRename = onRename, onDelete = onDelete)
         }
     }
 }
 
 @Composable
 private fun ProfileMenu(
+    onEdit: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -129,8 +132,16 @@ private fun ProfileMenu(
             onDismissRequest = { expanded = false },
         ) {
             DropdownMenuItem(
-                text = { Text("Rename") },
+                text = { Text("Edit") },
                 leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    onEdit()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text("Rename") },
+                leadingIcon = { Icon(Icons.Filled.DriveFileRenameOutline, contentDescription = null) },
                 onClick = {
                     expanded = false
                     onRename()

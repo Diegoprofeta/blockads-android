@@ -63,6 +63,8 @@ sealed class HttpsFilteringEvent {
     data class Error(val message: String) : HttpsFilteringEvent()
     data object ProxyStarted : HttpsFilteringEvent()
     data object ProxyStopped : HttpsFilteringEvent()
+    /** WireGuard routing was turned off because HTTPS filtering was enabled. */
+    data object WireGuardDisabledForHttps : HttpsFilteringEvent()
 }
 
 // ── ViewModel ───────────────────────────────────────────────────────────────
@@ -115,6 +117,14 @@ class HttpsFilteringViewModel(
             appPrefs.setHttpsFilteringEnabled(enabled)
 
             if (enabled) {
+                // HTTPS filtering and WireGuard routing are mutually
+                // exclusive: TcpIpStack terminates flows and dials the
+                // destination directly, bypassing the WG tunnel. Turn
+                // WG off so the user gets a single, working mode.
+                if (appPrefs.getRoutingModeSnapshot() == AppPreferences.ROUTING_MODE_WIREGUARD) {
+                    appPrefs.setRoutingMode(AppPreferences.ROUTING_MODE_DIRECT)
+                    _events.emit(HttpsFilteringEvent.WireGuardDisabledForHttps)
+                }
                 startProxy()
             } else {
                 stopProxy()

@@ -18,4 +18,7 @@ sealed class WireGuardUiEvent {
 
     /** WireGuard toggled on/off (routing mode flip). */
     data class WireGuardToggled(val enabled: Boolean) : WireGuardUiEvent()
+
+    /** HTTPS filtering was turned off because WireGuard was enabled. */
+    data object HttpsFilteringDisabledForWg : WireGuardUiEvent()
 }

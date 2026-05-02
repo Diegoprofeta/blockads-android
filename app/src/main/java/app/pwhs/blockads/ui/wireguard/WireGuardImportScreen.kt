@@ -67,6 +67,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun WireGuardImportScreen(
     onNavigateBack: () -> Unit,
+    onEditProfile: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WireGuardImportViewModel = koinViewModel()
 ) {
@@ -107,6 +108,8 @@ fun WireGuardImportScreen(
                     }
                     snackbarHostState.showSnackbar(msg)
                 }
+                is WireGuardUiEvent.HttpsFilteringDisabledForWg ->
+                    snackbarHostState.showSnackbar("HTTPS filtering disabled (incompatible with WireGuard)")
             }
         }
     }
@@ -181,6 +184,7 @@ fun WireGuardImportScreen(
                             profile = profile,
                             isActive = profile.id == activeId,
                             onClick = { viewModel.setActiveProfile(profile.id) },
+                            onEdit = { onEditProfile(profile.id) },
                             onRename = { renameTarget = profile },
                             onDelete = { deleteTarget = profile },
                         )

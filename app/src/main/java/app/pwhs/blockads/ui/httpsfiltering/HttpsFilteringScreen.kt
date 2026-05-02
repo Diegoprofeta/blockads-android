@@ -113,6 +113,10 @@ fun HttpsFilteringScreen(
                 is HttpsFilteringEvent.ProxyStopped -> {
                     snackbarHostState.showSnackbar("HTTPS filtering stopped")
                 }
+
+                is HttpsFilteringEvent.WireGuardDisabledForHttps -> {
+                    snackbarHostState.showSnackbar("WireGuard disabled (incompatible with HTTPS filtering)")
+                }
             }
         }
     }

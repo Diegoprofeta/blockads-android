@@ -428,7 +428,7 @@ func (e *Engine) Start(fd int, protector SocketProtector, wgConfigJSON string) {
 				// Non-DNS packets → channelTUN.Inject() → wireguard-go.
 				// Decrypted responses → channelTUN.Write() → real TUN.
 				tunDevice := newChannelTUN(e.tunFile)
-				wgAdapter, err := NewWgOutbound(tunDevice, ipcConfig)
+				wgAdapter, err := NewWgOutbound(tunDevice, ipcConfig, e.protectFn)
 				if err != nil {
 					logf("WireGuard adapter create error: %v", err)
 				} else {
