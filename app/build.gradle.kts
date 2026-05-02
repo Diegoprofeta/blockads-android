@@ -48,14 +48,14 @@ tasks.register<Exec>("buildGoTunnel") {
 android {
     namespace = "app.pwhs.blockads"
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
     ndkVersion = "26.1.10909125"
 
     defaultConfig {
         applicationId = "app.pwhs.blockads"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 48
         versionName = "6.4.0"
 
