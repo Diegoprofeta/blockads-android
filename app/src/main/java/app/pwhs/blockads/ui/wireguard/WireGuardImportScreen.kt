@@ -53,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -80,8 +81,16 @@ fun WireGuardImportScreen(
     val excludeLan by viewModel.excludeLan.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     var renameTarget by remember { mutableStateOf<WireGuardProfile?>(null) }
     var deleteTarget by remember { mutableStateOf<WireGuardProfile?>(null) }
+
+    // Resolve i18n strings here so the LaunchedEffect coroutine doesn't
+    // need a Composable scope to call stringResource().
+    val httpsDisabledMsg = stringResource(R.string.wireguard_https_filtering_disabled)
+    val renamedMsg = stringResource(R.string.wireguard_renamed)
+    val enabledMsg = stringResource(R.string.wireguard_enabled_restarting)
+    val disabledMsg = stringResource(R.string.wireguard_disabled_restarting)
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -93,23 +102,17 @@ fun WireGuardImportScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is WireGuardUiEvent.ProfileImported ->
-                    snackbarHostState.showSnackbar("Imported '${event.name}'")
+                    snackbarHostState.showSnackbar(context.getString(R.string.wireguard_imported, event.name))
                 is WireGuardUiEvent.ProfileDeleted ->
-                    snackbarHostState.showSnackbar("Deleted '${event.name}'")
+                    snackbarHostState.showSnackbar(context.getString(R.string.wireguard_deleted, event.name))
                 is WireGuardUiEvent.ProfileActivated ->
-                    snackbarHostState.showSnackbar("Active: ${event.name}")
+                    snackbarHostState.showSnackbar(context.getString(R.string.wireguard_active, event.name))
                 is WireGuardUiEvent.ProfileRenamed ->
-                    snackbarHostState.showSnackbar("Renamed")
-                is WireGuardUiEvent.WireGuardToggled -> {
-                    val msg = if (event.enabled) {
-                        "WireGuard enabled. Restarting VPN…"
-                    } else {
-                        "WireGuard disabled. Restarting VPN…"
-                    }
-                    snackbarHostState.showSnackbar(msg)
-                }
+                    snackbarHostState.showSnackbar(renamedMsg)
+                is WireGuardUiEvent.WireGuardToggled ->
+                    snackbarHostState.showSnackbar(if (event.enabled) enabledMsg else disabledMsg)
                 is WireGuardUiEvent.HttpsFilteringDisabledForWg ->
-                    snackbarHostState.showSnackbar("HTTPS filtering disabled (incompatible with WireGuard)")
+                    snackbarHostState.showSnackbar(httpsDisabledMsg)
             }
         }
     }
@@ -224,16 +227,16 @@ fun WireGuardImportScreen(
     deleteTarget?.let { target ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            title = { Text("Delete '${target.name}'?") },
-            text = { Text("This profile will be removed. The action cannot be undone.") },
+            title = { Text(stringResource(R.string.wireguard_delete_dialog_title, target.name)) },
+            text = { Text(stringResource(R.string.wireguard_delete_dialog_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteProfile(target.id)
                     deleteTarget = null
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.wireguard_action_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text("Cancel") }
+                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.wireguard_action_cancel)) }
             },
         )
     }
@@ -346,7 +349,7 @@ private fun SplitDnsCard(
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = { Text("internal,local,lan,corp") },
+                placeholder = { Text(stringResource(R.string.wireguard_split_dns_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
@@ -417,7 +420,7 @@ private fun RenameDialog(
     var text by remember { mutableStateOf(initialName) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rename profile") },
+        title = { Text(stringResource(R.string.wireguard_rename_dialog_title)) },
         text = {
             OutlinedTextField(
                 value = text,
@@ -430,10 +433,10 @@ private fun RenameDialog(
             TextButton(
                 onClick = { onConfirm(text) },
                 enabled = text.isNotBlank() && text != initialName,
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.wireguard_action_save)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.wireguard_action_cancel)) }
         },
     )
 }

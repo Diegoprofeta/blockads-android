@@ -33,9 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.pwhs.blockads.R
 import app.pwhs.blockads.data.entities.WireGuardProfile
 
 @Composable
@@ -49,7 +51,7 @@ fun ProfileRow(
     modifier: Modifier = Modifier,
 ) {
     val firstPeer = profile.config.peers.firstOrNull()
-    val endpoint = firstPeer?.endpoint ?: "(no peer)"
+    val endpoint = firstPeer?.endpoint ?: stringResource(R.string.wireguard_no_peer)
     val address = profile.config.interfaceConfig.address.firstOrNull() ?: "—"
 
     Card(
@@ -124,7 +126,7 @@ private fun ProfileMenu(
         IconButton(onClick = { expanded = true }) {
             Icon(
                 imageVector = Icons.Filled.MoreVert,
-                contentDescription = "More options",
+                contentDescription = stringResource(R.string.wireguard_more_options),
             )
         }
         DropdownMenu(
@@ -132,7 +134,7 @@ private fun ProfileMenu(
             onDismissRequest = { expanded = false },
         ) {
             DropdownMenuItem(
-                text = { Text("Edit") },
+                text = { Text(stringResource(R.string.wireguard_action_edit)) },
                 leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
                 onClick = {
                     expanded = false
@@ -140,7 +142,7 @@ private fun ProfileMenu(
                 },
             )
             DropdownMenuItem(
-                text = { Text("Rename") },
+                text = { Text(stringResource(R.string.wireguard_action_rename)) },
                 leadingIcon = { Icon(Icons.Filled.DriveFileRenameOutline, contentDescription = null) },
                 onClick = {
                     expanded = false
@@ -148,7 +150,7 @@ private fun ProfileMenu(
                 },
             )
             DropdownMenuItem(
-                text = { Text("Delete") },
+                text = { Text(stringResource(R.string.wireguard_action_delete)) },
                 leadingIcon = {
                     Icon(
                         Icons.Filled.Delete,
