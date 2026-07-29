@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 
 import java.util.Locale
@@ -97,6 +98,10 @@ class AdBlockVpnService : VpnService() {
         private const val ALERT_CHANNEL_ID = "blockads_vpn_alert_channel"
         private const val NETWORK_STABILIZATION_DELAY_MS = 2000L
         private const val RESTART_CLEANUP_DELAY_MS = 1000L
+
+        // How long stopVpn() waits for the native Go engine teardown before
+        // completing the service shutdown regardless (see stopVpn, #232).
+        private const val GO_STOP_TIMEOUT_MS = 5_000L
         const val ACTION_START = "app.pwhs.blockads.START_VPN"
         const val ACTION_STOP = "app.pwhs.blockads.STOP_VPN"
         const val ACTION_PAUSE_1H = "app.pwhs.blockads.PAUSE_VPN_1H"
@@ -904,13 +909,20 @@ class AdBlockVpnService : VpnService() {
 
         // Move ALL blocking Go native calls off the main thread
         serviceScope.launch(Dispatchers.IO) {
-            // Stop Go tunnel engine (this is the heavy native call that was causing ANR)
-            goTunnelAdapter.stop()
+            // Persist "off" FIRST: everything else here can block, and a slow
+            // teardown must not leave the flag saying the VPN should be on
+            // (BootReceiver / auto-reconnect / trusted-network logic read it).
+            appPrefs.setVpnEnabled(false)
 
-            runBlocking {
-                appPrefs.setVpnEnabled(false)
-            }
-
+            // Close OUR TUN fd before the Go stop, not after (#232). The Go
+            // engine dup()s the fd, so the tun interface — and with it the
+            // system VPN key indicator — stays alive until *both* copies are
+            // closed. Go closes its dup at the top of engine.stop(), but our
+            // copy used to be closed only once that whole call returned, i.e.
+            // after resolver shutdown + gVisor stack close, which can take
+            // seconds (or block indefinitely on a long-lived flow). Closing
+            // here makes the indicator disappear as soon as Go drops its dup,
+            // regardless of how long the rest of the teardown takes.
             try {
                 vpnInterface?.close()
             } catch (e: Exception) {
@@ -918,8 +930,25 @@ class AdBlockVpnService : VpnService() {
             }
             vpnInterface = null
 
+            // Stop Go tunnel engine (this is the heavy native call that was
+            // causing ANR). Detached + time-boxed: a native stop that hangs
+            // must not keep the service stuck in STOPPING with a "Stopping…"
+            // notification forever. NonCancellable so it still finishes its
+            // cleanup after stopSelf() cancels serviceScope.
+            val goStop = serviceScope.launch(NonCancellable) { goTunnelAdapter.stop() }
+            if (withTimeoutOrNull(GO_STOP_TIMEOUT_MS) { goStop.join() } == null) {
+                Timber.w("Go tunnel stop still running after ${GO_STOP_TIMEOUT_MS}ms — finishing shutdown anyway")
+            }
+
             // Switch back to main thread for UI/Service lifecycle operations
             withContext(Dispatchers.Main) {
+                // A start/restart may have taken over while we were waiting on
+                // the native stop (the timeout above lets us get here even when
+                // it hangs). Never tear down a session that is no longer ours.
+                if (_state.value != VpnState.STOPPING) {
+                    Timber.w("Shutdown superseded by ${_state.value} — leaving the new session alone")
+                    return@withContext
+                }
                 _state.value = VpnState.STOPPED
                 lastStoppedTimestamp = System.currentTimeMillis()
                 _privateDnsStrict.value = false
