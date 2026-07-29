@@ -39,7 +39,11 @@ class AppNameResolver(private val context: Context) {
     // Populated only when [startSnapshotter] is active (Root Proxy mode).
     // DNS query lookups read this map without blocking — no inline shell.
     @Volatile private var procNetSnapshot: Map<Int, Int> = emptyMap()
-    private var snapshotJob: Job? = null
+
+    // Read from the DNS hot path (many Go threads) to decide whether the
+    // /proc and root-shell lookups are worth attempting, so it needs to be
+    // visible across threads — see [rootModeActive].
+    @Volatile private var snapshotJob: Job? = null
 
     /**
      * Resolved app identity containing both display name and package name.
@@ -143,16 +147,32 @@ class AppNameResolver(private val context: Context) {
     /**
      * Look up /proc/net/udp and /proc/net/udp6 to find the UID owning the given port.
      * Used on API < 29 and on Android 10+ in Root Proxy mode.
+     *
+     * Every step here runs inline on a DNS query, so each one must justify
+     * itself per query. Outside Root Proxy mode none of them can: on Android
+     * 10+ SELinux limits the unprivileged read to our own sockets (so it can
+     * never see the querying app's), and the root-shell read needs a root
+     * shell we don't have. Both are therefore gated — see [rootModeActive].
+     * Without that gate a VPN-mode query walks the whole chain and ends on a
+     * blocking libsu command; libsu serialises everything on one shared
+     * shell, so every DNS query queues behind the previous one. That is
+     * issue #130's failure mode, which the snapshotter fixed for Root
+     * Proxy mode only.
      */
     private fun findUidFromProcNet(port: Int): Int {
         // Hot path (Root Proxy mode): read from the background snapshot.
         procNetSnapshot[port]?.let { return it }
+
+        val legacyAndroid = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+        if (!legacyAndroid && !rootModeActive) return -1
 
         val hexPort = String.format("%04X", port)
 
         // Unprivileged read fallback (works for own app's sockets and on older Android)
         findUidInProcFile("/proc/net/udp", hexPort)?.let { return it }
         findUidInProcFile("/proc/net/udp6", hexPort)?.let { return it }
+
+        if (!rootModeActive) return -1
 
         // Root-privileged read: on Android 10+, SELinux restricts /proc/net/udp
         // to only show the app's own sockets. In Root Proxy mode the snapshotter
@@ -161,6 +181,15 @@ class AppNameResolver(private val context: Context) {
 
         return -1
     }
+
+    /**
+     * True while Root Proxy mode is running — [startSnapshotter] is called
+     * only by RootProxyService, so the snapshot job's presence is exactly the
+     * signal we need. Deliberately not `Shell.isAppGrantedRoot()`: that call
+     * can itself construct the shell this gate exists to avoid.
+     */
+    private val rootModeActive: Boolean
+        get() = snapshotJob != null
 
     /**
      * Build a port → UID map from the full /proc/net/udp{,6} table via
