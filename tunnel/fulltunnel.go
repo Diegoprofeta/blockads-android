@@ -123,6 +123,7 @@ func (e *Engine) StartFull(fd int, protector SocketProtector) {
 	e.blockedQueries.Store(0)
 	// Fresh connection-log dedup set for this session.
 	connLogSeen.Range(func(k, _ any) bool { connLogSeen.Delete(k); return true })
+	uidPackageCache.Range(func(k, _ any) bool { uidPackageCache.Delete(k); return true })
 
 	var protectFn func(fd int) bool
 	if protector != nil {

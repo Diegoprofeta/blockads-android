@@ -34,33 +34,79 @@ func (e *Engine) appNameForFlow(flow flowID, protocol int) string {
 	if uid == UIDUnknown {
 		return ""
 	}
-	return r.PackageForUid(uid)
+	return packageForUidCached(r, uid)
 }
 
-// connLogSeen dedups connection-log entries by (uid-less) app+dest tuple so a
-// page opening many flows to the same server doesn't flood the log. Cleared
-// on engine stop (a fresh Engine per VPN session).
+// packageForUidCached resolves a UID to its package name through
+// [uidPackageCache], so repeated flows from the same app don't each pay a
+// getPackagesForUid binder call.
+//
+// Only successful lookups are cached. The Kotlin resolver returns "" both for
+// "no package owns this UID" and for a thrown PackageManager call, so caching
+// the empty result would pin a UID to "unknown" for the whole session over a
+// single transient failure.
+func packageForUidCached(r AppUidResolver, uid int) string {
+	if cached, ok := uidPackageCache.Load(uid); ok {
+		return cached.(string)
+	}
+	pkg := r.PackageForUid(uid)
+	if pkg != "" {
+		uidPackageCache.Store(uid, pkg)
+	}
+	return pkg
+}
+
+// connLogSeen dedups connection-log entries by app+dest tuple so a page
+// opening many flows to the same server doesn't flood the log. The app stays
+// in the key: two apps talking to the same CDN IP are two things the user
+// wants to see. Cleared on engine stop (a fresh Engine per VPN session).
 var connLogSeen sync.Map // key string -> struct{}
+
+// uidPackageCache memoizes uid→package so a burst of flows from the same app
+// (a page load opens dozens) costs one getPackagesForUid binder call instead
+// of one per flow. UIDs are stable for an app's install lifetime, and the
+// cache dies with the engine, so staleness isn't a concern.
+var uidPackageCache sync.Map // int -> string
 
 // logConnection reports a connection to the DNS-log callback so it shows in
 // the app's log screen (marked blockedBy="connection"). Deduped per
-// app+destIP+destPort. protocol is ProtocolTCP/ProtocolUDP. Best-effort and
-// non-blocking-friendly; skips silently if no log callback / no resolver.
+// app+destIP+destPort. protocol is ProtocolTCP/ProtocolUDP.
+//
+// Called on the flow's handler goroutine BEFORE the upstream dial, so
+// anything slow here is added latency on connection setup — and identifying
+// the owning app is not cheap: resolveFlowUID is a getConnectionOwnerUid
+// binder round trip that can't be cached (it's keyed on the 5-tuple). So only
+// the preference gate stays inline; everything else is handed to a goroutine
+// and never delays the dial. With logging off, a flow costs one atomic load.
 func (e *Engine) logConnection(flow flowID, protocol int) {
+	// Cheapest possible gate: the user isn't recording logs, so identifying
+	// who owns this flow would be pure waste.
+	if !e.connLogEnabled.Load() {
+		return
+	}
 	cb := e.logCallback
 	if cb == nil {
 		return
 	}
-	// Resolve owning app. Always log the connection even if the app can't
-	// be resolved (fall back to uid:<n> / unknown) so no traffic is silently
-	// hidden — the whole point is visibility into what each app connects to.
+	go e.reportConnection(cb, flow, protocol)
+}
+
+// reportConnection resolves the owning app, dedups, and emits the log entry.
+// Runs off the flow's handler goroutine — see logConnection. Resolving after
+// the dial rather than before it means a very short-lived flow may have no
+// socket left to attribute, degrading that entry to uid:<n>; the trade is
+// deliberate, since the alternative is delaying every connection.
+func (e *Engine) reportConnection(cb LogCallback, flow flowID, protocol int) {
+	// Always log even if the app can't be resolved (fall back to uid:<n> /
+	// unknown) so no traffic is silently hidden — the whole point is
+	// visibility into what each app connects to.
 	uid := UIDUnknown
 	if e.uidResolver != nil {
 		uid = resolveFlowUID(e.uidResolver, protocol, flow)
 	}
 	app := ""
 	if uid != UIDUnknown && e.appUidResolver != nil {
-		app = e.appUidResolver.PackageForUid(uid)
+		app = packageForUidCached(e.appUidResolver, uid)
 	}
 	if app == "" {
 		if uid != UIDUnknown {

@@ -122,6 +122,13 @@ type Engine struct {
 	tcpStackPipe atomic.Pointer[packetPipe]
 	useTcpStack  atomic.Bool
 
+	// connLogEnabled mirrors the app's "record logs" preference. Connection
+	// logging resolves the owning app per flow, which costs two binder round
+	// trips (getConnectionOwnerUid + getPackagesForUid) — far too expensive
+	// to pay when the user isn't recording logs at all. Checked before any
+	// resolution work; see logConnection.
+	connLogEnabled atomic.Bool
+
 	// quicDrop: when true, browser QUIC (UDP 443) is dropped to force
 	// HTTP/3 traffic onto TCP TLS where the MITM can filter it. This gives
 	// maximum in-page filtering coverage but makes some sites load
@@ -314,6 +321,18 @@ func (e *Engine) SetAppUidResolver(resolver AppUidResolver) {
 func (e *Engine) SetLogCallback(cb LogCallback) {
 	e.logCallback = cb
 }
+
+// SetConnLogEnabled mirrors the app's "record logs" preference into the
+// engine. Connection logging costs two binder round trips per flow to
+// resolve the owning app, so it must be off whenever the user isn't
+// recording logs. Safe to call at any time; takes effect for new flows.
+func (e *Engine) SetConnLogEnabled(enabled bool) {
+	e.connLogEnabled.Store(enabled)
+	logf("SetConnLogEnabled: connection logging = %t", enabled)
+}
+
+// IsConnLogEnabled reports the current value.
+func (e *Engine) IsConnLogEnabled() bool { return e.connLogEnabled.Load() }
 
 // SetDNS configures the DNS settings.
 // protocol: "PLAIN", "DOH", "DOT", "DOQ"

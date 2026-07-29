@@ -244,6 +244,11 @@ class AdBlockVpnService : VpnService() {
         serviceScope.launch {
             appPrefs.recordDnsLogs.collect { enabled ->
                 isRecordDnsLogsEnabled = enabled
+                // Push it into the engine too, so connection logging stops
+                // resolving per-flow app identity the moment it's turned off.
+                if (::goTunnelAdapter.isInitialized) {
+                    goTunnelAdapter.setConnLogEnabled(enabled)
+                }
             }
         }
 

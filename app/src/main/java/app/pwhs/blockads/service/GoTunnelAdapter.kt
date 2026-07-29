@@ -223,9 +223,23 @@ class GoTunnelAdapter(
     }
 
     /**
+     * Mirror the "record logs" preference into the Go engine.
+     *
+     * Connection logging resolves the owning app for each new flow, which
+     * costs a getConnectionOwnerUid plus a getPackagesForUid binder round
+     * trip. The Kotlin log callback checks [recordLogProvider] too, but by
+     * then Go has already paid for both — so the engine needs the flag
+     * itself to skip the work entirely.
+     */
+    fun setConnLogEnabled(enabled: Boolean) {
+        engine.setConnLogEnabled(enabled)
+    }
+
+    /**
      * Set the DNS log callback.
      */
     private fun setupLogCallback() {
+        engine.setConnLogEnabled(recordLogProvider())
         engine.setLogCallback { domain, blocked, queryType, responseTimeMs, packageNameOrAppName, resolvedIP, blockedBy ->
             if (!recordLogProvider()) return@setLogCallback
 
